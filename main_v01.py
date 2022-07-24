@@ -1,25 +1,65 @@
 import discord
 from discord.ext import commands
 import youtube_dl
-import os
 
-client = commands.Bot(command_prefix = ".")
+client = commands.Bot(command_prefix = "/")
 music_queue = {}
+
+vc_name = ""
+
+@client.command()
+async def join(ctx) :
+    global vc_name
+
+    if (ctx.author.voice is None) : # if user not in vc
+        await ctx.send("youre not in vc")
+    elif (not ctx.author.voice is None ) :
+        vc_name = str(ctx.author.voice.channel.name)
+
+    vc = ctx.author.voice.channel
+    if (ctx.voice_client is None) : # if bot not in vc
+        await vc.connect()
+    else : # if bot in another vc
+        await ctx.voice_client.move_to(vc)
+
+
+
+@client.command()
+async def disconnect(ctx) :
+    await ctx.voice_client.disconnect()
+
 
 
 @client.command()
 async def play(ctx) :
-    
+
     # create a queue/playlist
     #stream directly from youtube
 
     # replace General with name of vc the user is in
-    vc = discord.utils.get(ctx.guild.voice_channels, name = ctx.author.voice.channel.name)
     
-    await vc.connect()
+    vc_name = str(ctx.author.voice.channel.name)
+    if (vc_name != None) :
+        await voice.connect()
+        await ctx.send("hi!!!")
+    else : pass
+
+    vc = discord.utils.get(ctx.guild.voice_channels, name = ctx.author.voice.channel.name)
+
+    try :
+        await voice.connect()
+        await ctx.send("hi!!!")
+
+    except Exception :
+        await ctx.send("I'm already in call!")
+
     voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
 
-    await ctx.send("hi!!!")
+
+
+
+
+
 
 
 @client.command()
@@ -28,38 +68,11 @@ async def leave(ctx) :
 
     try :
         await voice.disconnect()
+
     except Exception :
-        await ctx.send("I'm no longer in call :pensive:")
+        await ctx.send("I'm not in call.")
 
-@client.command()
-async def pause(ctx) :
-    voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
-
-    try :
-        await voice.pause()
-    except Exception :
-        await ctx.send("Audio is already paused.")
-
-@client.command()
-async def resume(ctx) :
-    voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
-
-    try :
-        await voice.resume()
-    except Exception :
-        await ctx.send("Audio is already playing.")
-
-@client.command()
-async def stop (ctx) :
-    voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
-
-    voice.stop()
-
-@client.command()
-async def queue (ctx) :
-    voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
-
-client.run("redacted")
+client.run("")
 
 
 

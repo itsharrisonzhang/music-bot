@@ -1,11 +1,17 @@
 import discord
 from discord.ext import commands
-
+import youtube_dl
+import os
 
 client = commands.Bot(command_prefix = ".")
 
+queue = {}
+
+
 @client.command()
 async def play(ctx, url : str) :
+    
+    # create a queue/playlist
 
     # replace General with name of vc the user is in
     vc = discord.utils.get(ctx.guild.voice_channels, name = 'General')
@@ -13,6 +19,20 @@ async def play(ctx, url : str) :
 
     if (not voice.is_connected()) :
         await vc.connect()
+
+    ytdl_options = {
+        'format': 'bestaudio/best',
+        'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+        'restrictfilenames': True,
+        'noplaylist': True,
+        'nocheckcertificate': True,
+        'ignoreerrors': False,
+        'logtostderr': False,
+        'quiet': True,
+        'no_warnings': True,
+        'default_search': 'auto',
+        'source_address': '0.0.0.0'
+    }
 
 @client.command()
 async def leave(ctx) :
@@ -43,6 +63,13 @@ async def resume(ctx) :
 
 @client.command()
 async def stop (ctx) :
+    voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
+
+    voice.stop()
+
+@client.command()
+async def queue (ctx) :
+    voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
 
 
 

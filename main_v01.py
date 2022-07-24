@@ -2,65 +2,52 @@ import discord
 from discord.ext import commands
 import youtube_dl
 import os
-import hikari
 
 client = commands.Bot(command_prefix = ".")
-
-queue = {}
+music_queue = {}
 
 
 @client.command()
-async def play(ctx, url : str) :
+async def play(ctx) :
     
     # create a queue/playlist
+    #stream directly from youtube
 
     # replace General with name of vc the user is in
-    vc = discord.utils.get(ctx.guild.voice_channels, name = 'General')
+    vc = discord.utils.get(ctx.guild.voice_channels, name = ctx.author.voice.channel.name)
+    
+    await vc.connect()
     voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
 
-    if (not voice.is_connected()) :
-        await vc.connect()
+    await ctx.send("hi!!!")
 
-    ytdl_options = {
-        'format': 'bestaudio/best',
-        'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-        'restrictfilenames': True,
-        'noplaylist': True,
-        'nocheckcertificate': True,
-        'ignoreerrors': False,
-        'logtostderr': False,
-        'quiet': True,
-        'no_warnings': True,
-        'default_search': 'auto',
-        'source_address': '0.0.0.0'
-    }
 
 @client.command()
 async def leave(ctx) :
     voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
-    
-    if (voice.is_connected()) :
-        await voice.disconnected()
-    else :
-        await ctx.send("Bot isn't connected to a vc")
+
+    try :
+        await voice.disconnect()
+    except Exception :
+        await ctx.send("I'm no longer in call :pensive:")
 
 @client.command()
 async def pause(ctx) :
     voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
 
-    if voice.is_playing() :
-        voice.pause()
-    else :
-        await ctx.send("No audio playing")
+    try :
+        await voice.pause()
+    except Exception :
+        await ctx.send("Audio is already paused.")
 
 @client.command()
 async def resume(ctx) :
     voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
 
-    if voice.is_paused() :
-        voice.resume()
-    else :
-        await ctx.send("Audio isn't paused")
+    try :
+        await voice.resume()
+    except Exception :
+        await ctx.send("Audio is already playing.")
 
 @client.command()
 async def stop (ctx) :
@@ -72,6 +59,7 @@ async def stop (ctx) :
 async def queue (ctx) :
     voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
 
+client.run("redacted")
 
 
 

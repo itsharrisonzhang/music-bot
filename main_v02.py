@@ -25,7 +25,7 @@ async def group (ctx) :
 @lb.command('group', 'this is a group') # name, desc
 @lb.implements(lb.SlashSubCommand)
 async def subcommand(ctx) :
-    await ctx.respond('hi im a subcommand')
+    await ctx.respond('hi im a')
 
 
 

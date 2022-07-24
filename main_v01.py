@@ -1,15 +1,14 @@
+from operator import is_
 import discord
 from discord.ext import commands
 import youtube_dl
 
 client = commands.Bot(command_prefix = "/")
-music_queue = {}
-
-vc_name = ""
+music_queue = []
+is_playing = []
 
 @client.command()
 async def join(ctx) :
-    global vc_name
 
     if (ctx.author.voice is None) : # if user not in vc
         await ctx.send("youre not in vc")
@@ -31,29 +30,37 @@ async def disconnect(ctx) :
 
 
 @client.command()
-async def play(ctx) :
-
+async def play(ctx, url) :
+    global music_queue, is_playing
     # create a queue/playlist
-    #stream directly from youtube
 
-    # replace General with name of vc the user is in
+    if (ctx.voice_client is None) :
+        join(ctx)
+
+    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 - reconnect_delay_max 5', 'options': '-vn'}
+    YDL_OPTIONS = {'format' : "bestaudio"}
+
+    with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl :
+        info = ydl.extract_info(url, download = False)
+        url_a = info['formats'][0]['url']
+        source = await discord.FFmpegOpusAudio.from_probe(url_a, **FFMPEG_OPTIONS)
+        music_queue.append(source) # add to queue
     
-    vc_name = str(ctx.author.voice.channel.name)
-    if (vc_name != None) :
-        await voice.connect()
-        await ctx.send("hi!!!")
-    else : pass
+    if (len(is_playing) == 0) :
+        is_playing.append(music_queue[0])
+        music_queue.pop(0)
+        ctx.voice_client.play(is_playing[0])
 
-    vc = discord.utils.get(ctx.guild.voice_channels, name = ctx.author.voice.channel.name)
+@client.command()
+async def skip(ctx) :
+    global music_queue, is_playing
 
-    try :
-        await voice.connect()
-        await ctx.send("hi!!!")
-
-    except Exception :
-        await ctx.send("I'm already in call!")
-
-    voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
+    if (len(is_playing) == 0) :
+        await ctx.send("nothing to skip!")
+    elif (len(music_queue) > 0) :
+        is_playing.append(music_queue[0])
+        music_queue.pop(0)
+        ctx.voice_client.play(is_playing[0])
 
 
 

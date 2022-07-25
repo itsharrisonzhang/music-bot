@@ -58,25 +58,38 @@ async def play(ctx, url = None) :
             url_a = info['formats'][0]['url']
             duration = info['duration']
             source = await discord.FFmpegOpusAudio.from_probe(url_a, **FFMPEG_OPTIONS)
+
             music_queue.append(source) # add music to queue
             duration_queue.append(duration) # add duration to queue
+            
+            if (len(is_playing) == 0) :
+                start_playing(ctx)
+                print(len(music_queue))
+
+def start_playing(ctx) :
+    global music_queue, is_playing
         
-        # play if only one song in queue (in is_playing)
-        if (len(is_playing) == 0 and len(music_queue) > 0) :
+    while (len(music_queue) > 0) :
+
+        ctx.voice_client.stop()
+        is_playing.clear()
+        
+        is_playing.append(music_queue[0])
+        music_queue.pop(0)
+
+        ctx.voice_client.play(is_playing[0] , after = lambda e : print('Player error: %s' % e) if e else None)
+
+
+
+    else :
+        ctx.voice_client.stop()
+        await ctx.send("skipped!")
+        is_playing.clear()
+
+        if (len(music_queue) > 0) :
             is_playing.append(music_queue[0])
             music_queue.pop(0)
             ctx.voice_client.play(is_playing[0])
-
-def start_playing(voice_client) :
-    n = 0
-    while n < len(music_queue) :
-        try :
-            is_playing.pop(0)
-            is_playing.append(music_queue[n])
-            voice_client.play(is_playing[0], after = lambda e : print('Player error: %s' % e) if e else None)
-        except :
-            pass
-        n += 1
 
 
 
@@ -137,13 +150,13 @@ async def skip(ctx) :
     else :
         ctx.voice_client.stop()
         await ctx.send("skipped!")
-        is_playing.pop(0)
+        is_playing.clear()
 
         if (len(music_queue) > 0) :
             is_playing.append(music_queue[0])
             music_queue.pop(0)
             ctx.voice_client.play(is_playing[0])
 
-client.run("")
+client.run("MTAwMDU0NDEyODYwMzU0MTYxNg.GlY_Me.Ih8chefOOHPyvZLv5No0BiJ8-1h9PgeHKbrxgo")
 
 

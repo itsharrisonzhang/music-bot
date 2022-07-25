@@ -15,9 +15,6 @@ current_duration = []
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 YDL_OPTIONS = {'format' : "bestaudio"}
 
-start, end = 0, 0
-time_curr = 0.0
-
 #///////////////////////////////////////////////////
 
 @client.command()
@@ -35,6 +32,9 @@ async def join(ctx) :
 @client.command()
 async def disconnect(ctx) :
     await ctx.voice_client.disconnect()
+
+
+
 
 @client.command()
 async def play(ctx, url = None) :
@@ -61,18 +61,33 @@ async def play(ctx, url = None) :
             queue_durations.append(duration) # add duration to queue
         
         # add music to is_playing
-        if (len(is_playing) == 0) :
-            ctx.voice_client.stop()
+        if (len(music_queue) == 1) :
             is_playing.append(music_queue[0])
+            current_duration.append(queue_durations[0])
             music_queue.pop(0)
-            ctx.voice_client.play(is_playing[0])
-        
+            queue_durations.pop(0)
 
-def time_up (duration) :
+        while (len(is_playing) != 0) :
+
+            if (len(music_queue) == 0) :
+                ctx.voice_client.play(is_playing[0])
+                time_music(current_duration[0]) 
+            
+            else : # if queue length is not 0
+                is_playing.append(music_queue[0])
+                current_duration.append(queue_durations[0])
+                music_queue.pop(0)
+                queue_durations.pop(0)
+
+                ctx.voice_client.play(is_playing[0])
+                time_music(current_duration[0])
+
+
+
+def time_music (duration) :
     for n in range(int(duration + 1.0)) :
         duration = duration - 1
         sleep(1)
-    return True
 
 @client.command()
 async def pause(ctx) :

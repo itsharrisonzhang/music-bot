@@ -61,30 +61,30 @@ async def play(ctx, url = None) :
             music_queue.append(source) # add music to queue
             duration_queue.append(duration) # add duration to queue
         
-        # play if only one song in queue (in is_playing)
+        # add music to is_playing
         if (len(is_playing) == 0 and len(music_queue) > 0) :
             is_playing.append(music_queue[0])
+            current_duration.append(duration_queue[0])
             music_queue.pop(0)
+            duration_queue.pop(0)
+
             ctx.voice_client.play(is_playing[0])
+            print(current_duration[0])
+            time_thread = threading.Thread(target = time_music, args = [current_duration[0] + 1])
+            time_thread.start()
 
-def start_playing(voice_client) :
-    n = 0
-    while n < len(music_queue) :
-        try :
-            is_playing.pop(0)
-            is_playing.append(music_queue[n])
-            voice_client.play(is_playing[0], after = lambda e : print('Player error: %s' % e) if e else None)
-        except :
-            pass
-        n += 1
+        while (len(music_queue) > 0) :
+            if (len(is_playing) == 0) :
+                
+                print(current_duration[0])
 
+                is_playing.append(music_queue[0])
+                ctx.voice_client.play(is_playing[0])
+                time_thread = threading.Thread(target = time_music, args = [current_duration[0] + 1])
+                time_thread.start()
 
+                # when time is up, time_music removes music from is_playing
 
-
-@client.command()
-async def queue(ctx, url) :
-    global music_queue, duration_queue
-    # view queue
 
 def time_music (duration) :
     global is_playing
@@ -144,6 +144,6 @@ async def skip(ctx) :
             music_queue.pop(0)
             ctx.voice_client.play(is_playing[0])
 
-client.run("")
+client.run("MTAwMDU0NDEyODYwMzU0MTYxNg.GF3fAS.j2WCtcEqNWXf-Q43Jv7ezWVh6lm-UXFiHIIFbI")
 
 

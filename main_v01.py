@@ -10,7 +10,7 @@ is_playing = []
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 YDL_OPTIONS = {'format' : "bestaudio"}
 
-time_start = 0.0
+start, end = 0, 0
 
 #///////////////////////////////////////////////////
 
@@ -38,7 +38,7 @@ async def disconnect(ctx) :
 async def play(ctx, url = None) :
 
     # create a queue/playlist
-    global music_queue, is_playing, time_start
+    global music_queue, is_playing, start, end
     global FFMPEG_OPTIONS, YDL_OPTIONS
 
     # joins vc
@@ -58,26 +58,20 @@ async def play(ctx, url = None) :
             music_queue.append(source) # add to queue
     
     # add to is_playing
-    if (len(is_playing) == 0 or time.time() == time_start) :
+    if (len(is_playing) == 0) :
         ctx.voice_client.stop()
-        
-        if (len(is_playing) != 0) : 
-            is_playing.pop(0)
-            time_start = time_start + duration + 1.0
-
-
         is_playing.append(music_queue[0])
         music_queue.pop(0)
         ctx.voice_client.play(is_playing[0])
+        while True : await cont_play(ctx, time.time(), duration = duration)
 
-        if (time.time() == time_start) :
-            time_start = 0       
-
-
-
-
-
-
+async def cont_play(ctx, start, duration) :
+    end = time.time()
+    if (abs(end - start) == duration + 1.0) :
+        ctx.voice_client.stop()
+        is_playing.append(music_queue[0])
+        music_queue.pop(0)
+        ctx.voice_client.play(is_playing[0])
 
 @client.command()
 async def pause(ctx) :
@@ -119,6 +113,6 @@ async def skip(ctx) :
             ctx.voice_client.play(is_playing[0])
 
 
-client.run("MTAwMDU0NDEyODYwMzU0MTYxNg.GjrYws.chEcObzYmp1lDf95fazJ7yqvqjht4uFDV0I9so")
+client.run("")
 
 

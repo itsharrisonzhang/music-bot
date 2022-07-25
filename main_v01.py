@@ -68,9 +68,9 @@ async def play(ctx, url = None) :
             music_queue.pop(0)
             duration_queue.pop(0)
 
-            ctx.voice_client.play()
+            ctx.voice_client.play(is_playing[0])
             print(current_duration[0])
-            time_thread = threading.Thread(target = time_music, args = current_duration[0] + 1)
+            time_thread = threading.Thread(target = time_music, args = [current_duration[0] + 1])
             time_thread.start()
 
         while (len(music_queue) > 0) :
@@ -80,7 +80,7 @@ async def play(ctx, url = None) :
 
                 is_playing.append(music_queue[0])
                 ctx.voice_client.play(is_playing[0])
-                time_thread = threading.Thread(target = time_music, args = current_duration[0] + 1)
+                time_thread = threading.Thread(target = time_music, args = [current_duration[0] + 1])
                 time_thread.start()
 
                 # when time is up, time_music removes music from is_playing
@@ -94,10 +94,12 @@ def time_music (duration) :
         duration = duration - 1
         sleep(1)
         if (duration == 0) :
+            print("0 secs")
             is_playing.pop(0)
 
             current_duration.pop(0)
-            current_duration.append(duration_queue[0])
+            if (len(duration_queue) > 0) : 
+                current_duration.append(duration_queue[0])
 
             music_queue.pop(0)
             duration_queue.pop(0)
@@ -142,6 +144,6 @@ async def skip(ctx) :
             music_queue.pop(0)
             ctx.voice_client.play(is_playing[0])
 
-client.run("MTAwMDU0NDEyODYwMzU0MTYxNg.GygUMe.xGBYo8kUuLpASS3Jy-pbN1oN8luvJC_60X7Y0g")
+client.run("MTAwMDU0NDEyODYwMzU0MTYxNg.GF3fAS.j2WCtcEqNWXf-Q43Jv7ezWVh6lm-UXFiHIIFbI")
 
 

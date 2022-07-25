@@ -8,9 +8,10 @@ import threading
 client = commands.Bot(command_prefix = "/")
 
 music_queue = []
-queue_durations = []
+duration_queue = []
 is_playing = []
 current_duration = []
+time_left = 0
 
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 YDL_OPTIONS = {'format' : "bestaudio"}
@@ -40,7 +41,7 @@ async def disconnect(ctx) :
 async def play(ctx, url = None) :
 
     # create a queue/playlist
-    global music_queue, is_playing, start, end
+    global music_queue, is_playing
     global FFMPEG_OPTIONS, YDL_OPTIONS
 
     # joins vc
@@ -58,36 +59,49 @@ async def play(ctx, url = None) :
             duration = info['duration']
             source = await discord.FFmpegOpusAudio.from_probe(url_a, **FFMPEG_OPTIONS)
             music_queue.append(source) # add music to queue
-            queue_durations.append(duration) # add duration to queue
+            duration_queue.append(duration) # add duration to queue
         
         # add music to is_playing
-        if (len(music_queue) == 1) :
+        if (len(is_playing) == 0 and len(music_queue) > 0) :
             is_playing.append(music_queue[0])
-            current_duration.append(queue_durations[0])
+            current_duration.append(duration_queue[0])
             music_queue.pop(0)
-            queue_durations.pop(0)
+            duration_queue.pop(0)
 
-        while (len(is_playing) != 0) :
+            ctx.voice_client.play()
+            print(current_duration[0])
+            time_thread = threading.Thread(target = time_music, args = current_duration[0] + 1)
+            time_thread.start()
 
-            if (len(music_queue) == 0) :
-                ctx.voice_client.play(is_playing[0])
-                time_music(current_duration[0]) 
-            
-            else : # if queue length is not 0
+        while (len(music_queue) > 0) :
+            if (len(is_playing) == 0) :
+                
+                print(current_duration[0])
+
                 is_playing.append(music_queue[0])
-                current_duration.append(queue_durations[0])
-                music_queue.pop(0)
-                queue_durations.pop(0)
-
                 ctx.voice_client.play(is_playing[0])
-                time_music(current_duration[0])
+                time_thread = threading.Thread(target = time_music, args = current_duration[0] + 1)
+                time_thread.start()
 
+                # when time is up, time_music removes music from is_playing
 
 
 def time_music (duration) :
+    global is_playing
+
+    duration = int(duration)
     for n in range(int(duration + 1.0)) :
         duration = duration - 1
         sleep(1)
+        if (duration == 0) :
+            is_playing.pop(0)
+
+            current_duration.pop(0)
+            current_duration.append(duration_queue[0])
+
+            music_queue.pop(0)
+            duration_queue.pop(0)
+
 
 @client.command()
 async def pause(ctx) :
@@ -128,6 +142,6 @@ async def skip(ctx) :
             music_queue.pop(0)
             ctx.voice_client.play(is_playing[0])
 
-client.run("")
+client.run("MTAwMDU0NDEyODYwMzU0MTYxNg.GygUMe.xGBYo8kUuLpASS3Jy-pbN1oN8luvJC_60X7Y0g")
 
 

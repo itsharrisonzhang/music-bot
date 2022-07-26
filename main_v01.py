@@ -5,7 +5,7 @@ import youtube_dl
 from time import *
 import threading
 
-client = commands.Bot(command_prefix = ".")
+client = commands.Bot(command_prefix = "/")
 
 music_queue = []
 duration_queue = []
@@ -42,11 +42,14 @@ async def play(ctx, url = None) :
     global FFMPEG_OPTIONS, YDL_OPTIONS
 
     # joins vc
-    vc = ctx.author.voice.channel
-    if (ctx.voice_client is None) : # if bot not in vc
-        await vc.connect()
-    else : # if bot in another vc
-        await ctx.voice_client.move_to(vc)
+    if (ctx.author.voice is None) : # if user is not in vc
+        await ctx.send(":butterfly: | you're not in vc.")
+    else : 
+        vc = ctx.author.voice.channel
+        if (ctx.voice_client is None) : # if bot is not in vc
+            await vc.connect()
+        else :                          # if bot is in another vc
+            await ctx.voice_client.move_to(vc)
 
     if (url is not None) :
         with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl :

@@ -144,6 +144,6 @@ async def skip(ctx) :
             music_queue.pop(0)
             ctx.voice_client.play(is_playing[0])
 
-client.run("MTAwMDU0NDEyODYwMzU0MTYxNg.GF3fAS.j2WCtcEqNWXf-Q43Jv7ezWVh6lm-UXFiHIIFbI")
+client.run("")
 
 

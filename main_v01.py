@@ -23,7 +23,7 @@ async def join(ctx) :
     global paused
 
     if (ctx.author.voice is None) : # if user is not in vc
-        await ctx.send(":butterfly: | you're not in vc.")
+        await ctx.send(":butterfly: | you're not in a voice channel.")
     else : 
         vc = ctx.author.voice.channel
         if (ctx.voice_client is None) : # if bot is not in vc
@@ -44,7 +44,7 @@ async def play(ctx, url = None) :
 
     # joins vc
     if (ctx.author.voice is None) : # if user is not in vc
-        await ctx.send(":butterfly: | you're not in vc.")
+        await ctx.send(":butterfly: | you're not in a voice channel.")
     else : 
         vc = ctx.author.voice.channel
         if (ctx.voice_client is None) : # if bot is not in vc

@@ -5,7 +5,7 @@ import youtube_dl
 from time import *
 import threading
 
-client = commands.Bot(command_prefix = "/")
+client = commands.Bot(command_prefix = ".")
 
 music_queue = []
 duration_queue = []
@@ -22,13 +22,13 @@ YDL_OPTIONS = {'format' : "bestaudio"}
 async def join(ctx) :
 
     if (ctx.author.voice is None) : # if user is not in vc
-        await ctx.send("youre not in vc")
-
-    vc = ctx.author.voice.channel
-    if (ctx.voice_client is None) : # if bot is not in vc
-        await vc.connect()
-    else :                          # if bot is in another vc
-        await ctx.voice_client.move_to(vc)
+        await ctx.send(":butterfly: | you're not in vc.")
+    else : 
+        vc = ctx.author.voice.channel
+        if (ctx.voice_client is None) : # if bot is not in vc
+            await vc.connect()
+        else :                          # if bot is in another vc
+            await ctx.voice_client.move_to(vc)
 
 @client.command()
 async def disconnect(ctx) :
@@ -63,7 +63,6 @@ async def play(ctx, url = None) :
 def func_play(ctx) :
 
     if (not ctx.voice_client.is_playing() and len(music_queue) == 0) :
-        print("hi")
         ctx.voice_client.stop()
         is_playing.clear()
         current_duration.clear()
@@ -90,9 +89,9 @@ async def pause(ctx) :
 
     if (len(is_playing) == 1) :
         ctx.voice_client.pause()
-        await ctx.send("paused")
+        await ctx.send(":pause_button: | paused.")
     else :
-        await ctx.send("nothing to pause")
+        await ctx.send(":butterfly: | nothing to pause.")
 
 
 @client.command()
@@ -101,9 +100,9 @@ async def resume(ctx) :
 
     if (len(is_playing) == 1) :
         ctx.voice_client.resume()
-        await ctx.send("resumed")
+        await ctx.send(":arrow_forward: | resumed.")
     else :
-        await ctx.send("nothing to resume")
+        await ctx.send(":butterfly: | nothing to resume.")
 
 
 @client.command()
@@ -111,11 +110,11 @@ async def skip(ctx) :
     global music_queue, is_playing
 
     if (len(is_playing) == 0 or ctx.voice_client is None) :
-        await ctx.send("nothing to skip!") 
+        await ctx.send(":butterfly: | nothing to skip.") 
 
     else :
         ctx.voice_client.stop()
-        await ctx.send("skipped!")
+        await ctx.send(":fast_forward: | skipped.")
         is_playing.clear()
 
         if (len(music_queue) > 0) :

@@ -49,40 +49,40 @@ async def play(ctx, url = None) :
         await ctx.voice_client.move_to(vc)
 
     if (url is not None) :
-        # youtube_dl magic
         with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl :
             info = ydl.extract_info(url, download = False)
             url_a = info['formats'][0]['url']
             duration = info['duration']
             source = await discord.FFmpegOpusAudio.from_probe(url_a, **FFMPEG_OPTIONS)
-            music_queue.append(source) # add music to queue
+            music_queue.append(source)  # add music to queue
             duration_queue.append(duration) # add duration to queue
             
             if (len(is_playing) == 0) :
-                start_playing(ctx)
+                func_play(ctx)
 
-def start_playing(ctx) :
-    print(len(music_queue))
+def func_play(ctx) :
 
-    ctx.voice_client.stop()
-    is_playing.clear()
-    current_duration.clear()
+    if (not ctx.voice_client.is_playing() and len(music_queue) == 0) :
+        print("hi")
+        ctx.voice_client.stop()
+        is_playing.clear()
+        current_duration.clear()
+        return
 
-    if (len(music_queue) > 0) :
+    elif (len(music_queue) > 0) :
+        ctx.voice_client.stop()
+        is_playing.clear()
+        current_duration.clear()
         is_playing.append(music_queue[0])
         current_duration.append(duration_queue[0])
 
         music_queue.pop(0)
         duration_queue.pop(0)
-
-        print(len(is_playing))
         
+        print(len(music_queue))
         ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
-        timer = threading.Timer(current_duration[0], start_playing, args = [ctx])
+        timer = threading.Timer(current_duration[0], func_play, args = [ctx])
         timer.start()
-
-    if (not ctx.voice_client.is_playing() and len(is_playing) == 0 and len(music_queue) == 0) :
-        return
 
 @client.command()
 async def pause(ctx) :
@@ -123,6 +123,6 @@ async def skip(ctx) :
             music_queue.pop(0)
             ctx.voice_client.play(is_playing[0])
 
-client.run("MTAwMDU0NDEyODYwMzU0MTYxNg.GYHTGV.jrph5mVIP-FBimUU-YVA8o-_cmAfYZDCyEaL48")
+client.run("")
 
 

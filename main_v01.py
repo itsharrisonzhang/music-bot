@@ -63,17 +63,32 @@ async def play(ctx, url = None) :
             duration_queue.append(duration) # add duration to queue
             
             if (len(is_playing) == 0) :
-                start_playing(ctx)
+                nothing(ctx)
 
 def start_playing(ctx) :
     global music_queue, is_playing, duration_queue, current_duration
     
-    while (len(music_queue) > 0) :
+    ctx.voice_client.stop()
 
+    is_playing.append(music_queue[0])
+    current_duration.append(duration_queue[0])
+
+    music_queue.pop(0)
+    duration_queue.pop(0)
+
+    print(len(is_playing))
+    ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
+    timer = threading.Timer(current_duration[0], nothing, args = [ctx])
+    timer.start()
+
+def nothing(ctx) :
+    print(len(music_queue))
+
+    if (len(music_queue) > 0) :
         ctx.voice_client.stop()
         is_playing.clear()
         current_duration.clear()
-        
+
         is_playing.append(music_queue[0])
         current_duration.append(duration_queue[0])
 
@@ -81,46 +96,13 @@ def start_playing(ctx) :
         duration_queue.pop(0)
 
         print(len(is_playing))
+        
         ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
-        timer = threading.Timer(current_duration[0], nothing)
+        timer = threading.Timer(current_duration[0], nothing, args = [ctx])
         timer.start()
 
-  #  else :
-   #     ctx.voice_client.stop()
-  #      await ctx.send("skipped!")
-  #      is_playing.clear()
-
-   #     if (len(music_queue) > 0) :
-   #         is_playing.append(music_queue[0])
-   #         music_queue.pop(0)
-   #         ctx.voice_client.play(is_playing[0])
-
-def nothing() :
-    print("hi")
 
 
-@client.command()
-async def queue(ctx, url) :
-    global music_queue, duration_queue
-    # view queue
-
-def time_music (duration) :
-    global is_playing
-
-    duration = int(duration)
-    for n in range(int(duration + 1.0)) :
-        duration = duration - 1
-        sleep(1)
-        if (duration == 0) :
-            print("0 secs")
-            is_playing.pop(0)
-
-            current_duration.pop(0)
-            if (len(duration_queue) > 0) : 
-                current_duration.append(duration_queue[0])
-
-            music_queue.pop(0)
-            duration_queue.pop(0)
 
 
 @client.command()

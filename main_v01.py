@@ -1,4 +1,4 @@
-from operator import truediv
+from operator import is_, truediv
 import discord
 from discord.ext import commands
 import youtube_dl
@@ -41,7 +41,7 @@ async def disconnect(ctx) :
 async def play(ctx, url = None) :
 
     # create a queue/playlist
-    global music_queue, is_playing
+    global music_queue, is_playing, duration_queue, current_duration
     global FFMPEG_OPTIONS, YDL_OPTIONS
 
     # joins vc
@@ -64,34 +64,39 @@ async def play(ctx, url = None) :
             
             if (len(is_playing) == 0) :
                 start_playing(ctx)
-                print(len(music_queue))
 
 def start_playing(ctx) :
-    global music_queue, is_playing
-        
+    global music_queue, is_playing, duration_queue, current_duration
+    
     while (len(music_queue) > 0) :
 
         ctx.voice_client.stop()
         is_playing.clear()
+        current_duration.clear()
         
         is_playing.append(music_queue[0])
+        current_duration.append(duration_queue[0])
+
         music_queue.pop(0)
+        duration_queue.pop(0)
 
-        ctx.voice_client.play(is_playing[0] , after = lambda e : print('Player error: %s' % e) if e else None)
+        print(len(is_playing))
+        ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
+        timer = threading.Timer(current_duration[0], nothing)
+        timer.start()
 
+  #  else :
+   #     ctx.voice_client.stop()
+  #      await ctx.send("skipped!")
+  #      is_playing.clear()
 
+   #     if (len(music_queue) > 0) :
+   #         is_playing.append(music_queue[0])
+   #         music_queue.pop(0)
+   #         ctx.voice_client.play(is_playing[0])
 
-    else :
-        ctx.voice_client.stop()
-        await ctx.send("skipped!")
-        is_playing.clear()
-
-        if (len(music_queue) > 0) :
-            is_playing.append(music_queue[0])
-            music_queue.pop(0)
-            ctx.voice_client.play(is_playing[0])
-
-
+def nothing() :
+    print("hi")
 
 
 @client.command()
@@ -157,6 +162,6 @@ async def skip(ctx) :
             music_queue.pop(0)
             ctx.voice_client.play(is_playing[0])
 
-client.run("MTAwMDU0NDEyODYwMzU0MTYxNg.GlY_Me.Ih8chefOOHPyvZLv5No0BiJ8-1h9PgeHKbrxgo")
+client.run(".GYHTGV.jrph5mVIP-FBimUU-YVA8o-_cmAfYZDCyEaL48")
 
 

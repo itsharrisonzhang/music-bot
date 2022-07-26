@@ -11,7 +11,7 @@ music_queue = []
 duration_queue = []
 is_playing = []
 current_duration = []
-time_left = 0
+paused = False
 
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 YDL_OPTIONS = {'format' : "bestaudio"}
@@ -20,6 +20,7 @@ YDL_OPTIONS = {'format' : "bestaudio"}
 
 @client.command()
 async def join(ctx) :
+    global paused
 
     if (ctx.author.voice is None) : # if user is not in vc
         await ctx.send(":butterfly: | you're not in vc.")
@@ -38,7 +39,7 @@ async def disconnect(ctx) :
 async def play(ctx, url = None) :
 
     # create a queue/playlist
-    global music_queue, is_playing, duration_queue, current_duration
+    global music_queue, is_playing, duration_queue, current_duration, paused
     global FFMPEG_OPTIONS, YDL_OPTIONS
 
     # joins vc
@@ -50,6 +51,8 @@ async def play(ctx, url = None) :
             await vc.connect()
         else :                          # if bot is in another vc
             await ctx.voice_client.move_to(vc)
+        if (paused == True) :
+            ctx.voice_client.resume()
 
     if (url is not None) :
         with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl :
@@ -63,13 +66,15 @@ async def play(ctx, url = None) :
             if (len(is_playing) == 0) :
                 func_play(ctx)
 
+
 def func_play(ctx) :
+    global music_queue, is_playing, duration_queue, current_duration, paused
 
     if (not ctx.voice_client.is_playing() and len(music_queue) == 0) :
         ctx.voice_client.stop()
         is_playing.clear()
         current_duration.clear()
-        return
+        return None
 
     elif (len(music_queue) > 0) :
         ctx.voice_client.stop()
@@ -86,44 +91,57 @@ def func_play(ctx) :
         timer = threading.Timer(current_duration[0], func_play, args = [ctx])
         timer.start()
 
+
 @client.command()
 async def pause(ctx) :
-    global music_queue, is_playing
+    global paused
 
-    if (len(is_playing) == 1) :
+    if (ctx.voice_client.is_playing() and paused == False) :
         ctx.voice_client.pause()
+        paused = True
         await ctx.send(":pause_button: | paused.")
+    elif (paused == True) :
+        await ctx.send(":pause_button: | already paused.")
     else :
         await ctx.send(":butterfly: | nothing to pause.")
 
 
 @client.command()
 async def resume(ctx) :
-    global music_queue, is_playing
+    global music_queue, is_playing, paused
 
-    if (len(is_playing) == 1) :
+    if (not ctx.voice_client.is_playing() and ctx.voice_client is not None and paused == True) :
         ctx.voice_client.resume()
+        paused = False
         await ctx.send(":arrow_forward: | resumed.")
+    elif (paused == False) :
+        pass
     else :
         await ctx.send(":butterfly: | nothing to resume.")
 
 
 @client.command()
 async def skip(ctx) :
-    global music_queue, is_playing
+    global music_queue, is_playing, paused
 
-    if (len(is_playing) == 0 or ctx.voice_client is None) :
+    if (ctx.voice_client is None) :
         await ctx.send(":butterfly: | nothing to skip.") 
 
     else :
+        paused = False
         ctx.voice_client.stop()
         await ctx.send(":fast_forward: | skipped.")
         is_playing.clear()
+        current_duration.clear()
 
         if (len(music_queue) > 0) :
             is_playing.append(music_queue[0])
+            current_duration.append(duration_queue[0])
             music_queue.pop(0)
+            duration_queue.pop(0)
             ctx.voice_client.play(is_playing[0])
+            timer = threading.Timer(current_duration[0], func_play, args = [ctx])
+            timer.start()
 
 client.run("")
 

@@ -1,4 +1,3 @@
-from operator import is_, truediv
 import discord
 from discord.ext import commands
 import youtube_dl
@@ -70,6 +69,10 @@ async def play(ctx, url = None) :
                     func_play(ctx)
     except Exception :
         pass
+
+def get_url(ctx, keywords) :
+    pass
+    # gets the url to queue and play YouTube audio
 
 def func_play(ctx) :
     global music_queue, is_playing, duration_queue, current_duration, paused
@@ -152,7 +155,15 @@ async def skip(ctx) :
     except Exception :
         await ctx.send(":butterfly: | nothing to skip.")
 
+@client.command(name = "queue", aliases = ["q"])
+async def queue(ctx) :
+    global music_queue, is_playing, duration_queue, current_duration
+
+    for s in music_queue :
+        pass
+        # in progress
 
 client.run("")
+# ³⁷⁴¹²
 
 

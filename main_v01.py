@@ -1,10 +1,10 @@
 import discord
-from discord.ext import commands
 import youtube_dl
+from discord.ext import commands
 from time import *
 import threading
-import urllib.request
-import re
+import urllib.request, re
+import asyncio
 
 client = commands.Bot(command_prefix = "/")
 
@@ -106,12 +106,18 @@ def func_play(ctx) :
             titles_queue.pop(0)
 
             print(len(music_queue))
+            
+            print(asyncio.run(display))
+
             ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
             print(current_duration[0])
             timer = threading.Timer(current_duration[0], func_play, args = [ctx])
             timer.start()
     except Exception :
         pass
+
+async def display(ctx) :
+    await ctx.send(":butterfly: | now playing: " + str(current_duration[0]))
 
 @client.command()
 async def pause(ctx) :
@@ -174,6 +180,6 @@ async def queue(ctx) :
     except Exception :
         await ctx.send(":bug: | nothing is playing.")
 
-client.run("")
+client.run("MTAwMTMyMzQ3OTc4NzkxMzI0Ng.GIFkeU.nrUv_mR5S-_qlycGgTLlvyQ7tFy_kQZYZQjSPw")
 
 

@@ -45,9 +45,10 @@ async def disconnect(ctx) :
         pass
 
 @client.command(name = "play", aliases = ["p"])
-async def play(ctx, url = None) :
+async def play(ctx, search = None, url = None) :
     global music_queue, is_playing, duration_queue, current_duration, paused
     global FFMPEG_OPTIONS, YDL_OPTIONS
+    
     try :
         # joins vc
         if (ctx.author.voice is None) : # if user is not in vc
@@ -148,7 +149,7 @@ async def skip(ctx) :
 
     try :
         if (ctx.voice_client is None) :
-            await ctx.send(":butterfly: | nothing to skip.") 
+            await ctx.send(":bug: | nothing to skip.") 
 
         else :
             paused = False
@@ -157,7 +158,7 @@ async def skip(ctx) :
             await ctx.send(":fast_forward: | skipped.")
             func_play(ctx)
     except Exception :
-        await ctx.send(":butterfly: | nothing to skip.")
+        await ctx.send(":bug: | nothing to skip.")
 
 @client.command(name = "queue", aliases = ["q"])
 async def queue(ctx) :
@@ -166,14 +167,14 @@ async def queue(ctx) :
     try : 
         q_str = ""
         if (len(is_playing) == 0 and len(music_queue) == 0) :
-            q_str = "nothing is playing"
+            q_str = ":bug: | nothing is playing."
         else :
-            q_str = q_str + str(current_title[0]) + "\n"
+            q_str = q_str + ":butterfly: | now playing:\n" + str(current_title[0]) + "\n\n"
             for t in range (len(titles_queue)) :
-                q_str = q_str + str(titles_queue[t]) + "\n"
+                q_str = q_str + str(t) + ". " + str(titles_queue[t]) + "\n"
         await ctx.send(q_str)
     except Exception :
-        pass
+        await ctx.send(":bug: | nothing is playing.")
 
 client.run("")
 

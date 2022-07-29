@@ -1,3 +1,5 @@
+from operator import is_
+from turtle import title
 import discord
 from discord.ext import commands
 import youtube_dl
@@ -10,6 +12,8 @@ music_queue = []
 duration_queue = []
 is_playing = []
 current_duration = []
+titles_queue = []
+current_title = []
 paused = False
 
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
@@ -47,7 +51,7 @@ async def play(ctx, url = None) :
         # joins vc
         if (ctx.author.voice is None) : # if user is not in vc
             await ctx.send(":butterfly: | you're not in a voice channel.")
-        else : 
+        else :
             vc = ctx.author.voice.channel
             if (ctx.voice_client is None) : # if bot is not in vc
                 await vc.connect()
@@ -61,9 +65,11 @@ async def play(ctx, url = None) :
                 info = ydl.extract_info(url, download = False)
                 url_a = info['formats'][0]['url']
                 duration = info['duration']
+                title = info['title']
                 source = await discord.FFmpegOpusAudio.from_probe(url_a, **FFMPEG_OPTIONS)
                 music_queue.append(source)  # add music to queue
                 duration_queue.append(duration) # add duration to queue
+                titles_queue.append(title) # add title to queue
                 
                 if (len(is_playing) == 0) :
                     func_play(ctx)
@@ -76,29 +82,30 @@ def get_url(ctx, keywords) :
 
 def func_play(ctx) :
     global music_queue, is_playing, duration_queue, current_duration, paused
-    try :
-        if (not ctx.voice_client.is_playing() and len(music_queue) == 0) :
-            ctx.voice_client.stop()
-            is_playing.clear()
-            current_duration.clear()
-            return None
 
-        elif (len(music_queue) > 0) :
-            ctx.voice_client.stop()
-            is_playing.clear()
-            current_duration.clear()
-            is_playing.append(music_queue[0])
-            current_duration.append(duration_queue[0])
+    ctx.voice_client.stop()
+    is_playing.clear()
+    current_duration.clear()
 
-            music_queue.pop(0)
-            duration_queue.pop(0)
-            
-            print(len(music_queue))
-            ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
-            timer = threading.Timer(current_duration[0], func_play, args = [ctx])
-            timer.start()
-    except Exception :
-        pass
+    if (len(music_queue) > 0 or len(is_playing) > 0) :
+        print("wtf ok")
+        ctx.voice_client.stop()
+        is_playing.clear()
+        current_duration.clear()
+
+        is_playing.append(music_queue[0])
+        current_duration.append(duration_queue[0])
+        current_title.append(titles_queue[0])
+
+        music_queue.pop(0)
+        duration_queue.pop(0)
+        titles_queue.pop(0)
+
+        print(len(music_queue))
+        ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
+        print(current_duration[0])
+        timer = threading.Timer(current_duration[0], func_play, args = [ctx])
+        timer.start()
 
 @client.command()
 async def pause(ctx) :
@@ -133,37 +140,34 @@ async def resume(ctx) :
 @client.command()
 async def skip(ctx) :
     global music_queue, is_playing, paused
-    try :
-        if (ctx.voice_client is None) :
-            await ctx.send(":butterfly: | nothing to skip.") 
 
-        else :
-            paused = False
-            ctx.voice_client.stop()
-            await ctx.send(":fast_forward: | skipped.")
-            is_playing.clear()
-            current_duration.clear()
+    if (ctx.voice_client is None) :
+        await ctx.send(":butterfly: | nothing to skip.") 
 
-            if (len(music_queue) > 0) :
-                is_playing.append(music_queue[0])
-                current_duration.append(duration_queue[0])
-                music_queue.pop(0)
-                duration_queue.pop(0)
-                ctx.voice_client.play(is_playing[0])
-                timer = threading.Timer(current_duration[0], func_play, args = [ctx])
-                timer.start()
-    except Exception :
-        await ctx.send(":butterfly: | nothing to skip.")
+    else :
+        paused = False
+        ctx.voice_client.stop()
+        await ctx.send(":fast_forward: | skipped.")
+
+        func_play(ctx)
+        # premature skipping is from previous thread?
+        
+        
+
 
 @client.command(name = "queue", aliases = ["q"])
 async def queue(ctx) :
     global music_queue, is_playing, duration_queue, current_duration
 
-    for s in music_queue :
-        pass
-        # in progress
+    q_str = ""
+    if (len(is_playing) == 0 and len(music_queue) == 0) :
+        q_str = "nothing is playing"
+    else :
+        q_str = q_str + str(current_title[0]) + "\n"
+        for t in range (len(titles_queue)) :
+            q_str = q_str + str(titles_queue[t]) + "\n"
+    await ctx.send(q_str)
 
 client.run("")
-# ³⁷⁴¹²
 
 

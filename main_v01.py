@@ -1,11 +1,9 @@
-from operator import is_
-from tkinter import E
-from turtle import title
 import discord
 from discord.ext import commands
 import youtube_dl
 from time import *
 import threading
+import urllib.parse, urllib.request, re
 
 client = commands.Bot(command_prefix = "/")
 
@@ -45,7 +43,7 @@ async def disconnect(ctx) :
         pass
 
 @client.command(name = "play", aliases = ["p"])
-async def play(ctx, search = None) :
+async def play(ctx, *, search = None) :
     global music_queue, is_playing, duration_queue, current_duration, paused
     global FFMPEG_OPTIONS, YDL_OPTIONS
     try :
@@ -63,17 +61,30 @@ async def play(ctx, search = None) :
 
         if (search is not None) :
             with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl :
-                info = ydl.extract_info(f"ytsearch:{str(search)}", download = False)#['entries'][0]
 
-                url_a = info['requested_formats'][1]['url'] 
 
-                #url_a = info['formats'][0]['url']
+                print("check 1")
+                #query = urllib.parse.urlencode({'search query' : search})
+                html  = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + str(search))
+                
+                print("check 2")
+
+                # returns first result r"watch\?v=(/S{11})"
+                url_dict = re.findall('href=\"\\/watch\\?(.{11})', html.read().decode('utf-8')) # ????
+
+                print("check 3" + url_dict[0])
+
+                url = "https://www.youtube.com/watch?v=" + url_dict[0]
+                print(url)                
+
+
+                info = ydl.extract_info(url, download = False)
                 duration = info['duration']
                 title = info['title']
-                #source = await discord.FFmpegOpusAudio.from_probe(url_a, **FFMPEG_OPTIONS)
-                music_queue.append(url_a)  # add music to queue
+                source = await discord.FFmpegOpusAudio.from_probe(url, **FFMPEG_OPTIONS)
+                music_queue.append(source)  # add music to queue
                 
-                print(url_a) # invalid youtube url
+                print(url) # invalid youtube url
                 
                 duration_queue.append(duration) # add duration to queue
                 titles_queue.append(title) # add title to queue

@@ -64,17 +64,14 @@ async def play(ctx, *, search = None) :
             with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl :
 
                 html  = urllib.request.urlopen('https://www.youtube.com/results?search_query=' + str(search))
-                
-                print("check 2")
                 url_dict = re.findall(r'watch\?v=(\S{11})', html.read().decode()) # ????
-
-                print(url_dict)
                 url = 'https://www.youtube.com/watch?v=' + url_dict[0]
 
                 info = ydl.extract_info(url, download = False)
+                url_a = info['formats'][0]['url']
                 duration = info['duration']
                 title = info['title']
-                source = await discord.FFmpegOpusAudio.from_probe(url, **FFMPEG_OPTIONS)
+                source = await discord.FFmpegOpusAudio.from_probe(url_a, **FFMPEG_OPTIONS)
                 music_queue.append(source)  # add music to queue
                 
                 print(url) # invalid youtube url

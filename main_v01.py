@@ -62,9 +62,9 @@ async def play(ctx, *, search = None) :
 
         if (search is not None) :
             with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl :
-
+                search = urllib.parse.quote_plus(search, safe='')
                 html  = urllib.request.urlopen('https://www.youtube.com/results?search_query=' + str(search))
-                url_dict = re.findall(r'watch\?v=(\S{11})', html.read().decode()) # ????
+                url_dict = re.findall(r'watch\?v=(\S{11})', html.read().decode())
                 url = 'https://www.youtube.com/watch?v=' + url_dict[0]
 
                 info = ydl.extract_info(url, download = False)

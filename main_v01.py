@@ -1,4 +1,5 @@
 from operator import is_
+from tkinter import E
 from turtle import title
 import discord
 from discord.ext import commands
@@ -82,30 +83,33 @@ def get_url(ctx, keywords) :
 
 def func_play(ctx) :
     global music_queue, is_playing, duration_queue, current_duration, paused
+    global timer
 
-    ctx.voice_client.stop()
-    is_playing.clear()
-    current_duration.clear()
-
-    if (len(music_queue) > 0 or len(is_playing) > 0) :
-        print("wtf ok")
+    try : 
         ctx.voice_client.stop()
         is_playing.clear()
         current_duration.clear()
 
-        is_playing.append(music_queue[0])
-        current_duration.append(duration_queue[0])
-        current_title.append(titles_queue[0])
+        if (len(music_queue) > 0 or len(is_playing) > 0) :
+            ctx.voice_client.stop()
+            is_playing.clear()
+            current_duration.clear()
 
-        music_queue.pop(0)
-        duration_queue.pop(0)
-        titles_queue.pop(0)
+            is_playing.append(music_queue[0])
+            current_duration.append(duration_queue[0])
+            current_title.append(titles_queue[0])
 
-        print(len(music_queue))
-        ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
-        print(current_duration[0])
-        timer = threading.Timer(current_duration[0], func_play, args = [ctx])
-        timer.start()
+            music_queue.pop(0)
+            duration_queue.pop(0)
+            titles_queue.pop(0)
+
+            print(len(music_queue))
+            ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
+            print(current_duration[0])
+            timer = threading.Timer(current_duration[0], func_play, args = [ctx])
+            timer.start()
+    except Exception :
+        pass
 
 @client.command()
 async def pause(ctx) :
@@ -140,33 +144,36 @@ async def resume(ctx) :
 @client.command()
 async def skip(ctx) :
     global music_queue, is_playing, paused
+    global timer
 
-    if (ctx.voice_client is None) :
-        await ctx.send(":butterfly: | nothing to skip.") 
+    try :
+        if (ctx.voice_client is None) :
+            await ctx.send(":butterfly: | nothing to skip.") 
 
-    else :
-        paused = False
-        ctx.voice_client.stop()
-        await ctx.send(":fast_forward: | skipped.")
-
-        func_play(ctx)
-        # premature skipping is from previous thread?
-        
-        
-
+        else :
+            paused = False
+            ctx.voice_client.stop()
+            timer.cancel()
+            await ctx.send(":fast_forward: | skipped.")
+            func_play(ctx)
+    except Exception :
+        await ctx.send(":butterfly: | nothing to skip.")
 
 @client.command(name = "queue", aliases = ["q"])
 async def queue(ctx) :
     global music_queue, is_playing, duration_queue, current_duration
 
-    q_str = ""
-    if (len(is_playing) == 0 and len(music_queue) == 0) :
-        q_str = "nothing is playing"
-    else :
-        q_str = q_str + str(current_title[0]) + "\n"
-        for t in range (len(titles_queue)) :
-            q_str = q_str + str(titles_queue[t]) + "\n"
-    await ctx.send(q_str)
+    try : 
+        q_str = ""
+        if (len(is_playing) == 0 and len(music_queue) == 0) :
+            q_str = "nothing is playing"
+        else :
+            q_str = q_str + str(current_title[0]) + "\n"
+            for t in range (len(titles_queue)) :
+                q_str = q_str + str(titles_queue[t]) + "\n"
+        await ctx.send(q_str)
+    except Exception :
+        pass
 
 client.run("")
 

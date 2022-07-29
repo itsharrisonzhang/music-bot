@@ -45,10 +45,9 @@ async def disconnect(ctx) :
         pass
 
 @client.command(name = "play", aliases = ["p"])
-async def play(ctx, search = None, url = None) :
+async def play(ctx, search = None) :
     global music_queue, is_playing, duration_queue, current_duration, paused
     global FFMPEG_OPTIONS, YDL_OPTIONS
-    
     try :
         # joins vc
         if (ctx.author.voice is None) : # if user is not in vc
@@ -62,30 +61,31 @@ async def play(ctx, search = None, url = None) :
             if (paused == True) :
                 ctx.voice_client.resume()
 
-        if (url is not None) :
+        if (search is not None) :
             with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl :
-                info = ydl.extract_info(url, download = False)
-                url_a = info['formats'][0]['url']
+                info = ydl.extract_info(f"ytsearch:{str(search)}", download = False)#['entries'][0]
+
+                url_a = info['requested_formats'][1]['url'] 
+
+                #url_a = info['formats'][0]['url']
                 duration = info['duration']
                 title = info['title']
-                source = await discord.FFmpegOpusAudio.from_probe(url_a, **FFMPEG_OPTIONS)
-                music_queue.append(source)  # add music to queue
+                #source = await discord.FFmpegOpusAudio.from_probe(url_a, **FFMPEG_OPTIONS)
+                music_queue.append(url_a)  # add music to queue
+                
+                print(url_a) # invalid youtube url
+                
                 duration_queue.append(duration) # add duration to queue
                 titles_queue.append(title) # add title to queue
                 
                 if (len(is_playing) == 0) :
                     func_play(ctx)
+
     except Exception :
         pass
 
-def get_url(ctx, keywords) :
-    pass
-    # gets the url to queue and play YouTube audio
-
 def func_play(ctx) :
-    global music_queue, is_playing, duration_queue, current_duration, paused
-    global timer
-
+    global music_queue, is_playing, duration_queue, current_duration, paused, timer
     try : 
         ctx.voice_client.stop()
         is_playing.clear()
@@ -144,9 +144,7 @@ async def resume(ctx) :
 
 @client.command()
 async def skip(ctx) :
-    global music_queue, is_playing, paused
-    global timer
-
+    global music_queue, is_playing, paused, timer
     try :
         if (ctx.voice_client is None) :
             await ctx.send(":bug: | nothing to skip.") 
@@ -163,7 +161,6 @@ async def skip(ctx) :
 @client.command(name = "queue", aliases = ["q"])
 async def queue(ctx) :
     global music_queue, is_playing, duration_queue, current_duration
-
     try : 
         q_str = ""
         if (len(is_playing) == 0 and len(music_queue) == 0) :

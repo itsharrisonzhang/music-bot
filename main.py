@@ -9,7 +9,7 @@ client = commands.Bot(command_prefix = ".")
 queue = {}
 
 
-@client.command()
+@client.command(name = "play", aliases = ["p"])
 async def play(ctx, url : str) :
     
     # create a queue/playlist
@@ -35,8 +35,8 @@ async def play(ctx, url : str) :
         'source_address': '0.0.0.0'
     }
 
-@client.command()
-async def leave(ctx) :
+@client.command(name = "disconnect", aliases = ["dc"])
+async def disconnect(ctx) :
     voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
     
     if (voice.is_connected()) :
@@ -68,7 +68,7 @@ async def stop (ctx) :
 
     voice.stop()
 
-@client.command()
+@client.command(name = "queue", aliases = ["q"])
 async def queue (ctx) :
     voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
 

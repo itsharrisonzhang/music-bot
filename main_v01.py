@@ -3,7 +3,8 @@ from discord.ext import commands
 import youtube_dl
 from time import *
 import threading
-import urllib.parse, urllib.request, re
+import urllib.request
+import re
 
 client = commands.Bot(command_prefix = "/")
 
@@ -62,21 +63,13 @@ async def play(ctx, *, search = None) :
         if (search is not None) :
             with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl :
 
-
-                print("check 1")
-                #query = urllib.parse.urlencode({'search query' : search})
-                html  = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + str(search))
+                html  = urllib.request.urlopen('https://www.youtube.com/results?search_query=' + str(search))
                 
                 print("check 2")
+                url_dict = re.findall(r'watch\?v=(\S{11})', html.read().decode()) # ????
 
-                # returns first result r"watch\?v=(/S{11})"
-                url_dict = re.findall('href=\"\\/watch\\?(.{11})', html.read().decode('utf-8')) # ????
-
-                print("check 3" + url_dict[0])
-
-                url = "https://www.youtube.com/watch?v=" + url_dict[0]
-                print(url)                
-
+                print(url_dict)
+                url = 'https://www.youtube.com/watch?v=' + url_dict[0]
 
                 info = ydl.extract_info(url, download = False)
                 duration = info['duration']

@@ -9,10 +9,13 @@ client = commands.Bot(command_prefix = "/")
 
 music_queue = []
 duration_queue = []
+titles_queue = []
+url_queue = []
+
 is_playing = []
 current_duration = []
-titles_queue = []
 current_title = []
+current_url = []
 paused = False
 
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
@@ -77,6 +80,7 @@ async def play(ctx, *, search = None) :
                 print(url)
                 duration_queue.append(duration) # add duration to queue
                 titles_queue.append(title) # add title to queue
+                url_queue.append(url) # add url to queue
                 
                 if (len(is_playing) == 0) :
                     func_play(ctx)
@@ -90,20 +94,24 @@ def func_play(ctx) :
         is_playing.clear()
         current_duration.clear()
         current_title.clear()
+        current_url.clear()
 
         if (len(music_queue) > 0 or len(is_playing) > 0) :
             ctx.voice_client.stop()
             is_playing.clear()
             current_duration.clear()
-            current_title.clear()
+            current_title.clear()        
+            current_url.clear()
 
             is_playing.append(music_queue[0])
             current_duration.append(duration_queue[0])
             current_title.append(titles_queue[0])
+            current_url.append(url_queue[0])
 
             music_queue.pop(0)
             duration_queue.pop(0)
             titles_queue.pop(0)
+            url_queue.pop(0)
 
             print(len(music_queue))
             ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
@@ -115,10 +123,12 @@ def func_play(ctx) :
 
 async def display_added(ctx, title, url, duration) :
     queue_time = get_time(duration, 'q')
+    
+
     embed = discord.Embed(title = ":butterfly: | added to queue [{}]".format(str(len(music_queue))), color = 0xFFFFFF) 
-    embed.description = "[{}]({})".format(title + " " + " [{}]".format(get_time(duration)), url)
-    embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator + "\n")
-    "total queue time: " + queue_time
+    embed.description = "[{}]({})".format(title, url) + " [{}]".format(get_time(duration))
+    embed.set_footer(text = "total queue time: " + queue_time + "\n" + 
+                            "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)
     await ctx.send(embed = embed)
 
 @client.command()
@@ -168,6 +178,7 @@ async def skip(ctx, q_num = None) :
                     music_queue.pop(s)
                     duration_queue.pop(0)
                     titles_queue.pop(0)
+                    url_queue.pop(0)
             if (len(music_queue) == 0) :
                 new_title = ":butterfly: | skipped"
                 new_desc = "nothing playing—you should queue more music!"
@@ -192,15 +203,19 @@ async def queue(ctx) :
             q_str = ":butterfly: | nothing is playing."
             await ctx.send(q_str)
         else :
-            q_str = q_str + "**now playing: **" + str(current_title[0]) + " [{}]".format(get_time(current_duration[0])) + "\n\n"
+            q_str = q_str + "**now playing: **" + "[{}]({})".format(
+                str(current_title[0]), current_url[0]) + " [{}]".format(get_time(current_duration[0])) + "\n\n"
             for t in range (len(titles_queue)) :
-                q_str = q_str + str(t+1) + ".] " + str(titles_queue[t]) + " [{}]".format(get_time(duration_queue[t])) + "\n"
-            embed = create_embed(title = ":butterfly: | queue", 
+                q_str = q_str + str(t+1) + ".] " + "[{}]({})".format(
+                    str(titles_queue[t]), url_queue[t]) + " [{}]".format(get_time(duration_queue[t])) + "\n"
+            
+            embed = create_embed(title = ":butterfly: | music queue", 
                                  description = q_str,
-                                 footer = "total queue time: " + get_time(current_duration[0], 'q'))
+                                 footer = "total queue time: " + get_time(current_duration[0], 'q') + "\n")
             await ctx.send(embed = embed)
     except Exception :
         await ctx.send(":butterfly: | nothing is playing.")
+
 
 def create_embed(title, description, footer, url = None) :
     if (url is None) :

@@ -1,4 +1,3 @@
-from tkinter import E
 import discord
 import youtube_dl
 from discord.ext import commands
@@ -113,27 +112,11 @@ def func_play(ctx) :
         pass
 
 async def display_added(ctx, title, url, duration) :
-    global duration_queue
-    sec = duration
-    # get total queue duration
-    for s in duration_queue :
-        sec += s
-    min = int(sec / 60)
-    hour = int(min / 60)
-    sec = sec - (min * 60 + hour * 3600)
-    time_list = [hour, min, sec]
-    for t in range(len(time_list)) :
-        if (time_list[t] <= 9) : 
-            time_list[t] = "0" + str(time_list[t])
-    queue_time = ""
-    if(time_list[0] == "00") :
-        queue_time = str(time_list[1]) + ":" + str(time_list[2])
-    else :
-        queue_time = str(time_list[0]) + ":" + str(time_list[1]) + ":" + str(time_list[2])
-
+    queue_time = get_time(duration, 'q')
     embed = discord.Embed(title = ":butterfly: | added to queue ({})".format(str(len(music_queue))), url = url, color = 0xFFFFFF) 
-    embed.description = title
-    embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)
+    embed.description = title + " " + " ({})".format(get_time(duration))
+    embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator + "\n")
+    "total queue time: " + queue_time
     await ctx.send(embed = embed)
 
 @client.command()
@@ -167,19 +150,34 @@ async def resume(ctx) :
         await ctx.send(":butterfly: | nothing to resume.")
 
 @client.command()
-async def skip(ctx) :
+async def skip(ctx, q_num = None) :
     global music_queue, is_playing, paused, timer
     try :
         if (ctx.voice_client is None or len(is_playing) == 0) :
-            await ctx.send(":bug: | nothing to skip.") 
+            await ctx.send(":butterfly: | nothing to skip.") 
         else :
             paused = False
             ctx.voice_client.stop()
             timer.cancel()
-            await ctx.send(":fast_forward: | skipped.")
+            # skip to song
+            skip_to = 1
+            if (q_num is not None) :
+                for s in range(skip_to) :
+                    music_queue.pop(s)
+                    duration_queue.pop(0)
+                    titles_queue.pop(0)
+            if (len(music_queue) == 0) :
+                new_title = current_title[0]
+            else :
+                new_title = titles_queue[skip_to-1]
+            embed = create_embed(title = ":butterfly: | skipped to ({})".format(skip_to),
+            description = "**now playing:** " + new_title,
+            footer = "skipped by: " + ctx.author.display_name + "#" + ctx.author.discriminator + "\n")
+            await ctx.send(embed = embed)
             func_play(ctx)
     except Exception :
-        await ctx.send(":bug: | nothing to skip.")
+        await ctx.send(":butterfly: | nothing to skip.")
+
 
 @client.command(name = "queue", aliases = ["q"])
 async def queue(ctx) :
@@ -187,19 +185,47 @@ async def queue(ctx) :
     try : 
         q_str = ""
         if (len(is_playing) == 0 and len(music_queue) == 0) :
-            q_str = ":bug: | nothing is playing."
+            q_str = ":butterfly: | nothing is playing."
+            await ctx.send(q_str)
         else :
-            q_str = q_str + ":butterfly: | **now playing : **" + str(current_title[0]) + "\n\n"
+            q_str = q_str + "**now playing: **" + str(current_title[0]) + " ({}).".format(get_time(current_duration[0])) + "\n\n"
             for t in range (len(titles_queue)) :
-                q_str = q_str + str(t+1) + ".] " + str(titles_queue[t]) + "\n"
-        await ctx.send(q_str)
+                q_str = q_str + str(t+1) + ".] " + str(titles_queue[t]) + " ({})".format(get_time(duration_queue[t])) + "\n"
+            embed = create_embed(title = ":butterfly: | queue", 
+                         description = q_str,
+                         footer = "total queue time: " + get_time(current_duration[0], 'q'))
+            await ctx.send(embed = embed)
     except Exception :
-        await ctx.send(":bug: | nothing is playing.")
+        await ctx.send(":butterfly: | nothing is playing.")
 
-def create_embed(title, description, footer) :
-    embed = discord.Embed(title, color = 0xFFFFFF)
+def create_embed(title, description, footer, url = None) :
+    if (url is None) :
+        url = ""
+    embed = discord.Embed(title = title, url = url, color = 0xFFFFFF)
     embed.description = description
-    embed.set_footer = footer
+    embed.set_footer(text = footer)
+    return embed
+
+def get_time(duration, type = None) :
+    global duration_queue
+    sec = duration
+    if (type == 'q') :
+    # get total queue duration
+        for s in duration_queue :
+            sec += s
+    min = int(sec / 60)
+    hour = int(min / 60)
+    sec = sec - (min * 60 + hour * 3600)
+    time_list = [hour, min, sec]
+    for t in range(len(time_list)) :
+        if (time_list[t] <= 9) : 
+            time_list[t] = "0" + str(time_list[t])
+    queue_time = ""
+    if(time_list[0] == "00") :
+        queue_time = str(time_list[1]) + ":" + str(time_list[2])
+    else :
+        queue_time = str(time_list[0]) + ":" + str(time_list[1]) + ":" + str(time_list[2])
+    return queue_time
 
 client.run("")
 

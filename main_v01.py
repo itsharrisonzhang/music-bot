@@ -1,10 +1,10 @@
+from tkinter import E
 import discord
 import youtube_dl
 from discord.ext import commands
 from time import *
 import threading
 import urllib.request, re
-import datetime
 
 client = commands.Bot(command_prefix = "/")
 
@@ -115,23 +115,26 @@ def func_play(ctx) :
 async def display_added(ctx, title, url, duration) :
     global duration_queue
     sec = duration
+    # get total queue duration
     for s in duration_queue :
         sec += s
-    min = sec % 60
-    hour = min % 60
+    min = int(sec / 60)
+    hour = int(min / 60)
     sec = sec - (min * 60 + hour * 3600)
-    if (hour == 0) :
-        queue_time = 
-        queue_time = str(min) + ":" + str(sec)
+    time_list = [hour, min, sec]
+    for t in range(len(time_list)) :
+        if (time_list[t] <= 9) : 
+            time_list[t] = "0" + str(time_list[t])
+    queue_time = ""
+    if(time_list[0] == "00") :
+        queue_time = str(time_list[1]) + ":" + str(time_list[2])
     else :
-        queue_time = str(hour) + ":" + str(min) + ":" + str(sec)
+        queue_time = str(time_list[0]) + ":" + str(time_list[1]) + ":" + str(time_list[2])
 
-    embed = discord.Embed(title = ":butterfly: | added to queue " + "(" + str(len(music_queue)) + ")",
-        description = "[title](url)" + "\n" + "total queue time: " + queue_time)
+    embed = discord.Embed(title = ":butterfly: | added to queue ({})".format(str(len(music_queue))), url = url, color = 0xFFFFFF) 
+    embed.description = title
+    embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)
     await ctx.send(embed = embed)
-
-    
-
 
 @client.command()
 async def pause(ctx) :
@@ -167,9 +170,8 @@ async def resume(ctx) :
 async def skip(ctx) :
     global music_queue, is_playing, paused, timer
     try :
-        if (ctx.voice_client is None) :
+        if (ctx.voice_client is None or len(is_playing) == 0) :
             await ctx.send(":bug: | nothing to skip.") 
-
         else :
             paused = False
             ctx.voice_client.stop()
@@ -193,6 +195,11 @@ async def queue(ctx) :
         await ctx.send(q_str)
     except Exception :
         await ctx.send(":bug: | nothing is playing.")
+
+def create_embed(title, description, footer) :
+    embed = discord.Embed(title, color = 0xFFFFFF)
+    embed.description = description
+    embed.set_footer = footer
 
 client.run("")
 

@@ -4,7 +4,6 @@ from discord.ext import commands
 from time import *
 import threading
 import urllib.request, re
-import asyncio
 
 client = commands.Bot(command_prefix = "/")
 
@@ -74,14 +73,12 @@ async def play(ctx, *, search = None) :
                 source = await discord.FFmpegOpusAudio.from_probe(url_a, **FFMPEG_OPTIONS)
                 music_queue.append(source)  # add music to queue
                 
-                print(url) # invalid youtube url
-                
+                print(url)
                 duration_queue.append(duration) # add duration to queue
                 titles_queue.append(title) # add title to queue
                 
                 if (len(is_playing) == 0) :
                     func_play(ctx)
-
     except Exception :
         pass
 
@@ -106,8 +103,6 @@ def func_play(ctx) :
             titles_queue.pop(0)
 
             print(len(music_queue))
-            
-            print(asyncio.run(display))
 
             ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
             print(current_duration[0])
@@ -116,8 +111,7 @@ def func_play(ctx) :
     except Exception :
         pass
 
-async def display(ctx) :
-    await ctx.send(":butterfly: | now playing: " + str(current_duration[0]))
+
 
 @client.command()
 async def pause(ctx) :
@@ -169,17 +163,17 @@ async def skip(ctx) :
 async def queue(ctx) :
     global music_queue, is_playing, duration_queue, current_duration
     try : 
-        q_str = ""
+        q_str = "```"
         if (len(is_playing) == 0 and len(music_queue) == 0) :
             q_str = ":bug: | nothing is playing."
         else :
-            q_str = q_str + ":butterfly: | now playing:\n" + str(current_title[0]) + "\n\n"
+            q_str = q_str + ":butterfly: | now playing: " + str(current_title[0]) + "\n\n"
             for t in range (len(titles_queue)) :
-                q_str = q_str + str(t) + ". " + str(titles_queue[t]) + "\n"
+                q_str = q_str + str(t+1) + ".] " + str(titles_queue[t]) + "\n" + "```"
         await ctx.send(q_str)
     except Exception :
         await ctx.send(":bug: | nothing is playing.")
 
-client.run("MTAwMTMyMzQ3OTc4NzkxMzI0Ng.GIFkeU.nrUv_mR5S-_qlycGgTLlvyQ7tFy_kQZYZQjSPw")
+client.run("")
 
 

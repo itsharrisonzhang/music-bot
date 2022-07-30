@@ -4,6 +4,7 @@ from discord.ext import commands
 from time import *
 import threading
 import urllib.request, re
+import datetime
 
 client = commands.Bot(command_prefix = "/")
 
@@ -71,8 +72,9 @@ async def play(ctx, *, search = None) :
                 duration = info['duration']
                 title = info['title']
                 source = await discord.FFmpegOpusAudio.from_probe(url_a, **FFMPEG_OPTIONS)
-                music_queue.append(source)  # add music to queue
                 
+                music_queue.append(source)  # add music to queue
+                await display_added(ctx, title, url, duration)
                 print(url)
                 duration_queue.append(duration) # add duration to queue
                 titles_queue.append(title) # add title to queue
@@ -103,7 +105,6 @@ def func_play(ctx) :
             titles_queue.pop(0)
 
             print(len(music_queue))
-
             ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
             print(current_duration[0])
             timer = threading.Timer(current_duration[0], func_play, args = [ctx])
@@ -111,6 +112,25 @@ def func_play(ctx) :
     except Exception :
         pass
 
+async def display_added(ctx, title, url, duration) :
+    global duration_queue
+    sec = duration
+    for s in duration_queue :
+        sec += s
+    min = sec % 60
+    hour = min % 60
+    sec = sec - (min * 60 + hour * 3600)
+    if (hour == 0) :
+        queue_time = 
+        queue_time = str(min) + ":" + str(sec)
+    else :
+        queue_time = str(hour) + ":" + str(min) + ":" + str(sec)
+
+    embed = discord.Embed(title = ":butterfly: | added to queue " + "(" + str(len(music_queue)) + ")",
+        description = "[title](url)" + "\n" + "total queue time: " + queue_time)
+    await ctx.send(embed = embed)
+
+    
 
 
 @client.command()
@@ -163,13 +183,13 @@ async def skip(ctx) :
 async def queue(ctx) :
     global music_queue, is_playing, duration_queue, current_duration
     try : 
-        q_str = "```"
+        q_str = ""
         if (len(is_playing) == 0 and len(music_queue) == 0) :
             q_str = ":bug: | nothing is playing."
         else :
-            q_str = q_str + ":butterfly: | now playing: " + str(current_title[0]) + "\n\n"
+            q_str = q_str + ":butterfly: | **now playing : **" + str(current_title[0]) + "\n\n"
             for t in range (len(titles_queue)) :
-                q_str = q_str + str(t+1) + ".] " + str(titles_queue[t]) + "\n" + "```"
+                q_str = q_str + str(t+1) + ".] " + str(titles_queue[t]) + "\n"
         await ctx.send(q_str)
     except Exception :
         await ctx.send(":bug: | nothing is playing.")

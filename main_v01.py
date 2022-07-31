@@ -1,4 +1,7 @@
+from tkinter.tix import Tree
+from venv import create
 import discord
+from hikari import Embed
 import youtube_dl
 from discord.ext import commands
 from time import *
@@ -28,7 +31,9 @@ async def join(ctx) :
     global paused
     try :
         if (ctx.author.voice is None) : # if user is not in vc
-            await ctx.send(":butterfly: | you're not in a voice channel.")
+            embed = create_embed(title = ":butterfly: | not in vc", 
+                                 description = "join vc to /play music!")   
+            await ctx.send(embed = embed)         
         else : 
             vc = ctx.author.voice.channel
             if (ctx.voice_client is None) : # if bot is not in vc
@@ -38,7 +43,7 @@ async def join(ctx) :
     except Exception :
         pass
 
-@client.command(name = "disconnect", aliases = ["dc"])
+@client.command(name = "disconnect", aliases = ["dc", "leave"])
 async def disconnect(ctx) :
     try :
         await ctx.voice_client.disconnect()
@@ -52,7 +57,7 @@ async def play(ctx, *, search = None) :
     try :
         # joins vc
         if (ctx.author.voice is None) : # if user is not in vc
-            await ctx.send(":butterfly: | you're not in a voice channel.")
+            await ctx.send(":butterfly: | join vc to /play music!")
         else :
             vc = ctx.author.voice.channel
             if (ctx.voice_client is None) : # if bot is not in vc
@@ -97,11 +102,6 @@ def func_play(ctx) :
         current_url.clear()
 
         if (len(music_queue) > 0 or len(is_playing) > 0) :
-            ctx.voice_client.stop()
-            is_playing.clear()
-            current_duration.clear()
-            current_title.clear()        
-            current_url.clear()
 
             is_playing.append(music_queue[0])
             current_duration.append(duration_queue[0])
@@ -123,50 +123,67 @@ def func_play(ctx) :
 
 async def display_added(ctx, title, url, duration) :
     queue_time = get_time(duration, 'q')
-    
-
-    embed = discord.Embed(title = ":butterfly: | added to queue [{}]".format(str(len(music_queue))), color = 0xFFFFFF) 
-    embed.description = "[{}]({})".format(title, url) + " [{}]".format(get_time(duration))
-    embed.set_footer(text = "total queue time: " + queue_time + "\n" + 
-                            "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)
+    embed = create_embed(title = ":butterfly: | added to queue [{}]".format(str(len(music_queue))),
+                         description = "[{}]({})".format(title, url) + " [{}]".format(get_time(duration)),
+                         footer = "total queue time: " + queue_time + "\n" + 
+                                  "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)
     await ctx.send(embed = embed)
 
 @client.command()
 async def pause(ctx) :
     global paused
     try :
-        if (ctx.voice_client.is_playing() and paused == False) :
-            ctx.voice_client.pause()
-            paused = True
-            await ctx.send(":pause_button: | paused.")
+        if (ctx.voice_client is None) :
+            embed = create_embed(title = ":butterfly: | not in vc", 
+                                 description = "join vc to /play music!")
+            await ctx.send(embed = embed)
+        elif (len(is_playing) == 0) :
+            embed = create_embed(title = ":butterfly: | nothing to pause", 
+                                 description = "you should queue some music!")   
+            await ctx.send(embed = embed)
         elif (paused == True) :
-            await ctx.send(":pause_button: | already paused.")
+            pass
         else :
-            await ctx.send(":butterfly: | nothing to pause.")
+            embed = create_embed(title = ":butterfly: | paused", 
+                                 footer = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)   
+            await ctx.send(embed = embed) 
     except Exception :
-        await ctx.send(":butterfly: | nothing to pause.")
+        pass
 
 @client.command()
 async def resume(ctx) :
     global music_queue, is_playing, paused
     try :
-        if (not ctx.voice_client.is_playing() and ctx.voice_client is not None and paused == True) :
-            ctx.voice_client.resume()
-            paused = False
-            await ctx.send(":arrow_forward: | resumed.")
+        if (ctx.voice_client is None) :
+            embed = create_embed(title = ":butterfly: | not in vc", 
+                                 description = "join vc to /play music!")
+            await ctx.send(embed = embed)
+        elif (len(is_playing) == 0) :
+            embed = create_embed(title = ":butterfly: | nothing to resume", 
+                                 description = "you should queue some music!")   
+            await ctx.send(embed = embed)
         elif (paused == False) :
             pass
         else :
-            await ctx.send(":butterfly: | nothing to resume.")
+            ctx.voice_client.resume()
+            embed = create_embed(title = ":butterfly: | resumed", 
+                                 footer = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)   
+            await ctx.send(embed = embed) 
     except Exception :
-        await ctx.send(":butterfly: | nothing to resume.")
+        pass
 
 @client.command()
 async def skip(ctx, q_num = None) :
     global music_queue, is_playing, paused, timer
     try :
-        if (ctx.voice_client is None or len(is_playing) == 0) :
-            await ctx.send(":butterfly: | nothing to skip.") 
+        if (ctx.voice_client is None) :
+            embed = create_embed(title = ":butterfly: | not in vc", 
+                                 description = "join vc to /play music!")
+            await ctx.send(embed = embed)
+        elif (len(is_playing) == 0) :
+            embed = create_embed(title = ":butterfly: | nothing to skip", 
+                                description = "you should queue some music!")   
+            await ctx.send(embed = embed)
         else :
             paused = False
             ctx.voice_client.stop()
@@ -191,7 +208,7 @@ async def skip(ctx, q_num = None) :
             await ctx.send(embed = embed)
             func_play(ctx)
     except Exception :
-        await ctx.send(":butterfly: | nothing to skip.")
+        pass
 
 
 @client.command(name = "queue", aliases = ["q"])

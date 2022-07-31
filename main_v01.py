@@ -30,6 +30,7 @@ YDL_OPTIONS = {'format' : "bestaudio"}
 @client.command(name = "join", aliases = ["j"])
 async def join(ctx) :
     global paused
+    await ctx.message.delete()
     try :
         if (ctx.author.voice is None) : # if user is not in vc
             embed = discord.Embed(title = ":butterfly: | you're not in vc", description = "join vc to /play music!", color = 0xFFFFFF)   
@@ -45,6 +46,7 @@ async def join(ctx) :
 
 @client.command(name = "disconnect", aliases = ["dc", "leave"])
 async def disconnect(ctx) :
+    await ctx.message.delete()
     try :
         if (ctx.voice_client is not None) : # if bot is in vc
             ctx.voice_client.disconnect()
@@ -55,6 +57,7 @@ async def disconnect(ctx) :
 async def play(ctx, *, search = None) :
     global music_queue, is_playing, duration_queue, current_duration, paused
     global FFMPEG_OPTIONS, YDL_OPTIONS
+    await ctx.message.delete()
     try :
         # joins vc
         if (ctx.author.voice is None) : # if user is not in vc
@@ -136,6 +139,7 @@ async def display_added(ctx, title, url, duration) :
 @client.command()
 async def pause(ctx) :
     global paused
+    await ctx.message.delete()
     try :
         if (ctx.author.voice is None) :
             title = ":butterfly: | not in vc"
@@ -164,6 +168,7 @@ async def pause(ctx) :
 @client.command()
 async def resume(ctx) :
     global music_queue, is_playing, paused
+    await ctx.message.delete()
     try :
         if (ctx.voice_client is None) :
             title = ":butterfly: | not in vc" 
@@ -192,6 +197,7 @@ async def resume(ctx) :
 @client.command()
 async def skip(ctx, q_num = None) :
     global music_queue, is_playing, paused, timer
+    await ctx.message.delete()
     try :
         if (ctx.author.voice is None) :
             embed = discord.Embed(title = ":butterfly: | not in vc", description = "join vc to /play music!", color = 0xFFFFFF)   
@@ -234,6 +240,7 @@ async def skip(ctx, q_num = None) :
 @client.command(name = "queue", aliases = ["q"])
 async def queue(ctx) :
     global music_queue, is_playing, duration_queue, current_duration
+    await ctx.message.delete()
     try : 
         q_str = ""
         if (ctx.author.voice is None) :

@@ -31,7 +31,7 @@ async def join(ctx) :
     global paused
     try :
         if (ctx.author.voice is None) : # if user is not in vc
-            embed = discord.Embed(title = ":butterfly: | not in vc", description = "join vc to /play music!", color = 0xFFFFFF)   
+            embed = discord.Embed(title = ":butterfly: | you're not in vc", description = "join vc to /play music!", color = 0xFFFFFF)   
             await ctx.send(embed = embed)         
         else : 
             vc = ctx.author.voice.channel
@@ -45,7 +45,8 @@ async def join(ctx) :
 @client.command(name = "disconnect", aliases = ["dc", "leave"])
 async def disconnect(ctx) :
     try :
-        await ctx.voice_client.disconnect()
+        if (ctx.voice_client is not None) : # if bot is in vc
+            ctx.voice_client.disconnect()
     except Exception :
         pass
 
@@ -56,14 +57,15 @@ async def play(ctx, *, search = None) :
     try :
         # joins vc
         if (ctx.author.voice is None) : # if user is not in vc
-            await ctx.send(":butterfly: | join vc to /play music!")
+            embed = discord.Embed(title = ":butterfly: | not in vc", description = "join vc to /play music!", color = 0xFFFFFF)   
+            await ctx.send(embed = embed)
         else :
             vc = ctx.author.voice.channel
             if (ctx.voice_client is None) : # if bot is not in vc
                 await vc.connect()
             else :                          # if bot is in another vc
                 await ctx.voice_client.move_to(vc)
-            if (paused == True) :
+            if (paused == True and search is None) :
                 ctx.voice_client.resume()
 
         if (search is not None) :
@@ -132,14 +134,18 @@ async def display_added(ctx, title, url, duration) :
 async def pause(ctx) :
     global paused
     try :
-        if (ctx.voice_client is None) :
-            title = ":butterfly: | not in vc", 
+        if (ctx.author.voice is None) :
+            title = ":butterfly: | not in vc"
             description = "join vc to /play music!"
+            footer = ""
         elif (len(is_playing) == 0) :
-            title = ":butterfly: | nothing to pause", 
+            title = ":butterfly: | nothing to pause" 
             description = "you should queue some music!"
+            footer = ""
         elif (paused == True) :
-            pass
+            title = ":butterfly: | already paused" 
+            description = ""
+            footer = ""
         else :
             ctx.voice_client.pause()
             paused = True
@@ -157,13 +163,17 @@ async def resume(ctx) :
     global music_queue, is_playing, paused
     try :
         if (ctx.voice_client is None) :
-            title = ":butterfly: | not in vc", 
+            title = ":butterfly: | not in vc" 
             description = "join vc to /play music!"
+            footer = ""
         elif (len(is_playing) == 0) :
-            title = ":butterfly: | nothing to resume", 
-            description = "you should queue some music!"   
+            title = ":butterfly: | nothing to resume" 
+            description = "you should queue some music!"
+            footer = ""
         elif (paused == False) :
-            pass
+            title = ":butterfly: | already playing" 
+            description = ""
+            footer = ""
         else :
             ctx.voice_client.resume()
             paused = False
@@ -180,8 +190,8 @@ async def resume(ctx) :
 async def skip(ctx, q_num = None) :
     global music_queue, is_playing, paused, timer
     try :
-        if (ctx.voice_client is None) :
-            embed = discord.Embed(title = ":butterfly: | not in vc", description = "join vc to /play music!", color = 0xFFFFFF)
+        if (ctx.author.voice is None) :
+            embed = discord.Embed(title = ":butterfly: | not in vc", description = "join vc to /play music!", color = 0xFFFFFF)   
             await ctx.send(embed = embed)
         elif (len(is_playing) == 0) :
             embed = discord.Embed(title = ":butterfly: | nothing to skip", description = "you should queue some music!", color = 0xFFFFFF)
@@ -217,9 +227,15 @@ async def queue(ctx) :
     global music_queue, is_playing, duration_queue, current_duration
     try : 
         q_str = ""
-        if (len(is_playing) == 0 and len(music_queue) == 0) :
-            q_str = ":butterfly: | nothing is playing."
-            await ctx.send(q_str)
+        if (ctx.author.voice is None) :
+            embed = discord.Embed(title = ":butterfly: | not in vc", description = "join vc to /play music!", color = 0xFFFFFF)
+            await ctx.send(embed = embed)
+        elif (len(is_playing) == 0 and len(music_queue) == 0) :
+            title = ":butterfly: | queue"
+            description = "nothing playing—you should queue some music!"
+            embed = discord.Embed(title = title, description = description, color = 0xFFFFFF)
+            embed.set_footer(text = "total queue time: 00:00" + "\n")
+            await ctx.send(embed = embed)
         else :
             q_str = q_str + "**now playing: **" + "[{}]({})".format(
                 str(current_title[0]), current_url[0]) + " [{}]".format(get_time(current_duration[0])) + "\n\n"
@@ -228,7 +244,7 @@ async def queue(ctx) :
                     str(titles_queue[t]), url_queue[t]) + " [{}]".format(get_time(duration_queue[t])) + "\n"
             
             embed = discord.Embed(title = ":butterfly: | music queue", description = q_str, color = 0xFFFFFF)
-            embed.set_footer("total queue time: " + get_time(current_duration[0], 'q') + "\n")
+            embed.set_footer(text = "total queue time: " + get_time(current_duration[0], 'q') + "\n")
             await ctx.send(embed = embed)
     except Exception :
         pass
@@ -242,7 +258,9 @@ def get_time(duration, type = None) :
             sec += s
     min = int(sec / 60)
     hour = int(min / 60)
-    sec = sec - (min * 60 + hour * 3600)
+    sec = sec % 60
+    min = min % 60
+
     time_list = [hour, min, sec]
     for t in range(len(time_list)) :
         if (time_list[t] <= 9) : 

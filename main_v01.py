@@ -244,7 +244,7 @@ async def queue(ctx) :
                 q_str = q_str + str(t+1) + ".] " + "[{}]({})".format(
                     str(titles_queue[t]), url_queue[t]) + " [{}]".format(get_time(duration_queue[t])) + "\n"
             
-            embed = discord.Embed(title = ":butterfly: | music queue", description = q_str, color = 0xFFFFFF)
+            embed = discord.Embed(title = ":butterfly: | queue", description = q_str, color = 0xFFFFFF)
             embed.set_footer(text = "total queue time: " + get_time(current_duration[0], 'q') + "\n")
             await ctx.send(embed = embed)
     except Exception :

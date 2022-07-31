@@ -1,7 +1,3 @@
-from multiprocessing.sharedctypes import Value
-from pydoc import describe
-from types import NoneType
-from xxlimited import foo
 import discord
 import youtube_dl
 from discord.ext import commands
@@ -10,45 +6,35 @@ import threading
 import urllib.request, re
 
 client = commands.Bot(command_prefix = "/")
-
-music_queue = []
-duration_queue = []
-titles_queue = []
-url_queue = []
-
-is_playing = []
-current_duration = []
-current_title = []
-current_url = []
-paused = False
-
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 YDL_OPTIONS = {'format' : "bestaudio"}
+
+music_queue, duration_queue, titles_queue, url_queue = [],[],[],[]
+is_playing, current_duration, current_title, current_url = [],[],[],[]
+paused = False
 
 #///////////////////////////////////////////////////
 
 @client.command(name = "join", aliases = ["j"])
 async def join(ctx) :
     global paused
-    await ctx.message.delete()
     try :
-        if (ctx.author.voice is None) : # if user is not in vc
+        if (ctx.author.voice is None) :
             embed = discord.Embed(title = ":butterfly: | you're not in vc", description = "join vc to /play music!", color = 0xFFFFFF)   
             await ctx.send(embed = embed)        
         else : 
             vc = ctx.author.voice.channel
-            if (ctx.voice_client is None) : # if bot is not in vc
+            if (ctx.voice_client is None) :
                 await vc.connect()
-            else :                          # if bot is in another vc
+            else :                   
                 await ctx.voice_client.move_to(vc)
     except Exception :
         pass
 
 @client.command(name = "disconnect", aliases = ["dc", "leave"])
 async def disconnect(ctx) :
-    await ctx.message.delete()
     try :
-        if (ctx.voice_client is not None) : # if bot is in vc
+        if (ctx.voice_client is not None) :
             ctx.voice_client.disconnect()
     except Exception :
         pass
@@ -57,17 +43,16 @@ async def disconnect(ctx) :
 async def play(ctx, *, search = None) :
     global music_queue, is_playing, duration_queue, current_duration, paused
     global FFMPEG_OPTIONS, YDL_OPTIONS
-    await ctx.message.delete()
     try :
         # joins vc
-        if (ctx.author.voice is None) : # if user is not in vc
+        if (ctx.author.voice is None) :
             embed = discord.Embed(title = ":butterfly: | not in vc", description = "join vc to /play music!", color = 0xFFFFFF)   
             await ctx.send(embed = embed)
         else :
             vc = ctx.author.voice.channel
-            if (ctx.voice_client is None) : # if bot is not in vc
+            if (ctx.voice_client is None) :
                 await vc.connect()
-            else :                          # if bot is in another vc
+            else :
                 await ctx.voice_client.move_to(vc)
             if (paused == True and search is None) :
                 ctx.voice_client.resume()
@@ -78,23 +63,24 @@ async def play(ctx, *, search = None) :
 
         if (search is not None) :
             with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl :
+                # format url
                 search = urllib.parse.quote_plus(search, safe='')
                 html  = urllib.request.urlopen('https://www.youtube.com/results?search_query=' + str(search))
                 url_dict = re.findall(r'watch\?v=(\S{11})', html.read().decode())
                 url = 'https://www.youtube.com/watch?v=' + url_dict[0]
-
+                # get youtube info
                 info = ydl.extract_info(url, download = False)
                 url_a = info['formats'][0]['url']
                 duration = info['duration']
                 title = info['title']
                 source = await discord.FFmpegOpusAudio.from_probe(url_a, **FFMPEG_OPTIONS)
-                
-                music_queue.append(source)  # add music to queue
+                # add elements to queue
+                music_queue.append(source)
                 await display_added(ctx, title, url, duration)
                 print(url)
-                duration_queue.append(duration) # add duration to queue
-                titles_queue.append(title) # add title to queue
-                url_queue.append(url) # add url to queue
+                duration_queue.append(duration)
+                titles_queue.append(title)
+                url_queue.append(url)
                 
                 if (len(is_playing) == 0) :
                     func_play(ctx)
@@ -111,18 +97,18 @@ def func_play(ctx) :
         current_url.clear()
 
         if (len(music_queue) > 0 or len(is_playing) > 0) :
-
+            # update lists
             is_playing.append(music_queue[0])
             current_duration.append(duration_queue[0])
             current_title.append(titles_queue[0])
             current_url.append(url_queue[0])
-
             music_queue.pop(0)
             duration_queue.pop(0)
             titles_queue.pop(0)
             url_queue.pop(0)
 
             ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
+            # multithreaded timer
             timer = threading.Timer(current_duration[0], func_play, args = [ctx])
             timer.start()
     except Exception :
@@ -139,8 +125,8 @@ async def display_added(ctx, title, url, duration) :
 @client.command()
 async def pause(ctx) :
     global paused
-    await ctx.message.delete()
     try :
+        # cases
         if (ctx.author.voice is None) :
             title = ":butterfly: | not in vc"
             description = "join vc to /play music!"
@@ -168,8 +154,8 @@ async def pause(ctx) :
 @client.command()
 async def resume(ctx) :
     global music_queue, is_playing, paused
-    await ctx.message.delete()
     try :
+        # cases
         if (ctx.voice_client is None) :
             title = ":butterfly: | not in vc" 
             description = "join vc to /play music!"
@@ -197,7 +183,11 @@ async def resume(ctx) :
 @client.command()
 async def skip(ctx, q_num = None) :
     global music_queue, is_playing, paused, timer
-    await ctx.message.delete()
+    if (q_num is not None) :
+        try :
+            skip_to = int(q_num)
+        except ValueError :
+            q_num = None
     try :
         if (ctx.author.voice is None) :
             embed = discord.Embed(title = ":butterfly: | not in vc", description = "join vc to /play music!", color = 0xFFFFFF)   
@@ -209,17 +199,12 @@ async def skip(ctx, q_num = None) :
             paused = False
             ctx.voice_client.stop()
             timer.cancel()
-
             if (len(music_queue) == 0) :
                 title = ":butterfly: | skipped"
                 description = "nothing playing—you should queue some music!"
             else :
                 title = ":butterfly: | skipped"
-                description = "**now playing: **" + "[{}]({})".format(titles_queue[0], url_queue[0]) + " [{}]".format(get_time(duration_queue[0]))
-                try :
-                    skip_to = int(q_num)
-                except ValueError :
-                    q_num = None
+                # skip to a song
                 if (q_num is not None) :
                     title = ":butterfly: | skipped to [{}]".format(skip_to)
                     n = 0
@@ -229,10 +214,11 @@ async def skip(ctx, q_num = None) :
                         titles_queue.pop(0)
                         url_queue.pop(0)
                         n+=1
+                description = "**now playing: **" + "[{}]({})".format(titles_queue[0], url_queue[0]) + " [{}]".format(get_time(duration_queue[0]))
             embed = discord.Embed(title = title, description = description, color = 0xFFFFFF)
             embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator + "\n")
             await ctx.send(embed = embed)
-            func_play(ctx)
+        func_play(ctx)
     except Exception :
         pass
 
@@ -240,7 +226,6 @@ async def skip(ctx, q_num = None) :
 @client.command(name = "queue", aliases = ["q"])
 async def queue(ctx) :
     global music_queue, is_playing, duration_queue, current_duration
-    await ctx.message.delete()
     try : 
         q_str = ""
         if (ctx.author.voice is None) :

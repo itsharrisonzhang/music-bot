@@ -32,7 +32,7 @@ async def join(ctx) :
     try :
         if (ctx.author.voice is None) : # if user is not in vc
             embed = discord.Embed(title = ":butterfly: | you're not in vc", description = "join vc to /play music!", color = 0xFFFFFF)   
-            await ctx.send(embed = embed)         
+            await ctx.send(embed = embed)        
         else : 
             vc = ctx.author.voice.channel
             if (ctx.voice_client is None) : # if bot is not in vc
@@ -67,6 +67,10 @@ async def play(ctx, *, search = None) :
                 await ctx.voice_client.move_to(vc)
             if (paused == True and search is None) :
                 ctx.voice_client.resume()
+                paused = False
+                embed = discord.Embed(title = ":butterfly: | resumed", color = 0xFFFFFF)
+                embed.set_footer("requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)
+                await ctx.send(embed = embed)
 
         if (search is not None) :
             with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl :
@@ -114,9 +118,7 @@ def func_play(ctx) :
             titles_queue.pop(0)
             url_queue.pop(0)
 
-            print(len(music_queue))
             ctx.voice_client.play(is_playing[0]) # after = lambda e : print('Player error: %s' % e) if e else None)
-            print(current_duration[0])
             timer = threading.Timer(current_duration[0], func_play, args = [ctx])
             timer.start()
     except Exception :
@@ -145,7 +147,7 @@ async def pause(ctx) :
         elif (paused == True) :
             title = ":butterfly: | already paused" 
             description = ""
-            footer = ""
+            footer = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator
         else :
             ctx.voice_client.pause()
             paused = True
@@ -173,7 +175,7 @@ async def resume(ctx) :
         elif (paused == False) :
             title = ":butterfly: | already playing" 
             description = ""
-            footer = ""
+            footer = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator
         else :
             ctx.voice_client.resume()
             paused = False

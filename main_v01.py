@@ -69,7 +69,7 @@ async def play(ctx, *, search = None) :
                 ctx.voice_client.resume()
                 paused = False
                 embed = discord.Embed(title = ":butterfly: | resumed", color = 0xFFFFFF)
-                embed.set_footer("requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)
+                embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)
                 await ctx.send(embed = embed)
 
         if (search is not None) :
@@ -202,20 +202,26 @@ async def skip(ctx, q_num = None) :
             paused = False
             ctx.voice_client.stop()
             timer.cancel()
+            
             # skip to song
             skip_to = 1
             if (q_num is not None) :
-                for s in range(skip_to) :
+                skip_to = int(q_num)
+                for s in range(skip_to-1) :
                     music_queue.pop(s)
-                    duration_queue.pop(0)
-                    titles_queue.pop(0)
-                    url_queue.pop(0)
+                    duration_queue.pop(s)
+                    titles_queue.pop(s)
+                    url_queue.pop(s)
+            print(titles_queue)
+
+
+
             if (len(music_queue) == 0) :
                 title = ":butterfly: | skipped"
                 description = "nothing playing—you should queue some music!"
             else :
                 title = ":butterfly: | skipped to [{}]".format(skip_to)
-                description = "**now playing: **" + titles_queue[skip_to-1] + " [{}]".format(get_time(duration_queue[skip_to-1]))
+                description = "**now playing: **" + "[{}]({})".format(titles_queue[skip_to-2], url_queue[skip_to-2]) + " [{}]".format(get_time(duration_queue[skip_to-2]))
             embed = discord.Embed(title = title, description = description, color = 0xFFFFFF)
             embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator + "\n")
             await ctx.send(embed = embed)

@@ -202,26 +202,12 @@ async def skip(ctx, q_num = None) :
             paused = False
             ctx.voice_client.stop()
             timer.cancel()
-            
-            # skip to song
-            skip_to = 1
-            if (q_num is not None) :
-                skip_to = int(q_num)
-                for s in range(skip_to-1) :
-                    music_queue.pop(s)
-                    duration_queue.pop(s)
-                    titles_queue.pop(s)
-                    url_queue.pop(s)
-            print(titles_queue)
-
-
-
             if (len(music_queue) == 0) :
                 title = ":butterfly: | skipped"
                 description = "nothing playing—you should queue some music!"
             else :
-                title = ":butterfly: | skipped to [{}]".format(skip_to)
-                description = "**now playing: **" + "[{}]({})".format(titles_queue[skip_to-2], url_queue[skip_to-2]) + " [{}]".format(get_time(duration_queue[skip_to-2]))
+                title = ":butterfly: | skipped"
+                description = "**now playing: **" + "[{}]({})".format(titles_queue[0], url_queue[0]) + " [{}]".format(get_time(duration_queue[0]))
             embed = discord.Embed(title = title, description = description, color = 0xFFFFFF)
             embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator + "\n")
             await ctx.send(embed = embed)

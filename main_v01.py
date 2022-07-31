@@ -1,7 +1,7 @@
-from tkinter.tix import Tree
-from venv import create
+from pydoc import describe
+from types import NoneType
+from xxlimited import foo
 import discord
-from hikari import Embed
 import youtube_dl
 from discord.ext import commands
 from time import *
@@ -123,10 +123,10 @@ def func_play(ctx) :
 
 async def display_added(ctx, title, url, duration) :
     queue_time = get_time(duration, 'q')
-    embed = create_embed(title = ":butterfly: | added to queue [{}]".format(str(len(music_queue))),
-                         description = "[{}]({})".format(title, url) + " [{}]".format(get_time(duration)),
-                         footer = "total queue time: " + queue_time + "\n" + 
-                                  "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)
+    embed = discord.Embed(title = ":butterfly: | added to queue [{}]".format(str(len(music_queue))),
+                          description = "[{}]({})".format(title, url) + " [{}]".format(get_time(duration)))
+    embed.set_footer(text = "total queue time: " + queue_time + "\n" + 
+                            "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)
     await ctx.send(embed = embed)
 
 @client.command()
@@ -136,17 +136,16 @@ async def pause(ctx) :
         if (ctx.voice_client is None) :
             embed = create_embed(title = ":butterfly: | not in vc", 
                                  description = "join vc to /play music!")
-            await ctx.send(embed = embed)
         elif (len(is_playing) == 0) :
             embed = create_embed(title = ":butterfly: | nothing to pause", 
                                  description = "you should queue some music!")   
-            await ctx.send(embed = embed)
         elif (paused == True) :
             pass
         else :
+            paused = True
             embed = create_embed(title = ":butterfly: | paused", 
                                  footer = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)   
-            await ctx.send(embed = embed) 
+        await ctx.send(embed = embed)
     except Exception :
         pass
 
@@ -157,18 +156,17 @@ async def resume(ctx) :
         if (ctx.voice_client is None) :
             embed = create_embed(title = ":butterfly: | not in vc", 
                                  description = "join vc to /play music!")
-            await ctx.send(embed = embed)
         elif (len(is_playing) == 0) :
             embed = create_embed(title = ":butterfly: | nothing to resume", 
                                  description = "you should queue some music!")   
-            await ctx.send(embed = embed)
         elif (paused == False) :
             pass
         else :
+            paused = False
             ctx.voice_client.resume()
             embed = create_embed(title = ":butterfly: | resumed", 
                                  footer = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator)   
-            await ctx.send(embed = embed) 
+        await ctx.send(embed = embed) 
     except Exception :
         pass
 
@@ -182,7 +180,7 @@ async def skip(ctx, q_num = None) :
             await ctx.send(embed = embed)
         elif (len(is_playing) == 0) :
             embed = create_embed(title = ":butterfly: | nothing to skip", 
-                                description = "you should queue some music!")   
+                                 description = "you should queue some music!")   
             await ctx.send(embed = embed)
         else :
             paused = False
@@ -231,12 +229,15 @@ async def queue(ctx) :
                                  footer = "total queue time: " + get_time(current_duration[0], 'q') + "\n")
             await ctx.send(embed = embed)
     except Exception :
-        await ctx.send(":butterfly: | nothing is playing.")
+        pass
 
 
-def create_embed(title, description, footer, url = None) :
-    if (url is None) :
-        url = ""
+def create_embed(title = None, url = None, description = None, footer = None) :
+    title = str(title)
+    url = str(url)
+    description = str(description)
+    footer = str(footer)
+
     embed = discord.Embed(title = title, url = url, color = 0xFFFFFF)
     embed.description = description
     embed.set_footer(text = footer)
@@ -263,6 +264,6 @@ def get_time(duration, type = None) :
         queue_time = str(time_list[0]) + ":" + str(time_list[1]) + ":" + str(time_list[2])
     return queue_time
 
-client.run("")
+client.run("MTAwMTMyMzQ3OTc4NzkxMzI0Ng.GThezA.oYegd6pICo7nfLJg9TgJY4AItix09wnIg1CcNs")
 
 

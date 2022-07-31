@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 from pydoc import describe
 from types import NoneType
 from xxlimited import foo
@@ -202,33 +203,29 @@ async def skip(ctx, q_num = None) :
             paused = False
             ctx.voice_client.stop()
             timer.cancel()
-            if (q_num is None) :
-                if (len(music_queue) == 0) :
-                    title = ":butterfly: | skipped"
-                    description = "nothing playing—you should queue some music!"
-                else :
-                    title = ":butterfly: | skipped"
-                    description = "**now playing: **" + "[{}]({})".format(titles_queue[0], url_queue[0]) + " [{}]".format(get_time(duration_queue[0]))
-                embed = discord.Embed(title = title, description = description, color = 0xFFFFFF)
-                embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator + "\n")
-                await ctx.send(embed = embed)
-            else :
-                skip_to = int(q_num)
-                print(len(music_queue))
-                i = 0
-                while (i < skip_to-1) :
-                    music_queue.pop(0)
-                    duration_queue.pop(0)
-                    titles_queue.pop(0)
-                    url_queue.pop(0)
-                    i+=1
-                print(len(music_queue))
 
-                title = ":butterfly: | skipped to [{}]".format(skip_to)
+            if (len(music_queue) == 0) :
+                title = ":butterfly: | skipped"
+                description = "nothing playing—you should queue some music!"
+            else :
+                title = ":butterfly: | skipped"
                 description = "**now playing: **" + "[{}]({})".format(titles_queue[0], url_queue[0]) + " [{}]".format(get_time(duration_queue[0]))
-                embed = discord.Embed(title = title, description = description, color = 0xFFFFFF)
-                embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator + "\n")
-                await ctx.send(embed = embed)
+                try :
+                    skip_to = int(q_num)
+                except ValueError :
+                    q_num = None
+                if (q_num is not None) :
+                    title = ":butterfly: | skipped to [{}]".format(skip_to)
+                    n = 0
+                    while (n < skip_to-1) :
+                        music_queue.pop(0)
+                        duration_queue.pop(0)
+                        titles_queue.pop(0)
+                        url_queue.pop(0)
+                        n+=1
+            embed = discord.Embed(title = title, description = description, color = 0xFFFFFF)
+            embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator + "\n")
+            await ctx.send(embed = embed)
             func_play(ctx)
     except Exception :
         pass

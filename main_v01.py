@@ -202,15 +202,33 @@ async def skip(ctx, q_num = None) :
             paused = False
             ctx.voice_client.stop()
             timer.cancel()
-            if (len(music_queue) == 0) :
-                title = ":butterfly: | skipped"
-                description = "nothing playing—you should queue some music!"
+            if (q_num is None) :
+                if (len(music_queue) == 0) :
+                    title = ":butterfly: | skipped"
+                    description = "nothing playing—you should queue some music!"
+                else :
+                    title = ":butterfly: | skipped"
+                    description = "**now playing: **" + "[{}]({})".format(titles_queue[0], url_queue[0]) + " [{}]".format(get_time(duration_queue[0]))
+                embed = discord.Embed(title = title, description = description, color = 0xFFFFFF)
+                embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator + "\n")
+                await ctx.send(embed = embed)
             else :
-                title = ":butterfly: | skipped"
+                skip_to = int(q_num)
+                print(len(music_queue))
+                i = 0
+                while (i < skip_to-1) :
+                    music_queue.pop(0)
+                    duration_queue.pop(0)
+                    titles_queue.pop(0)
+                    url_queue.pop(0)
+                    i+=1
+                print(len(music_queue))
+
+                title = ":butterfly: | skipped to [{}]".format(skip_to)
                 description = "**now playing: **" + "[{}]({})".format(titles_queue[0], url_queue[0]) + " [{}]".format(get_time(duration_queue[0]))
-            embed = discord.Embed(title = title, description = description, color = 0xFFFFFF)
-            embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator + "\n")
-            await ctx.send(embed = embed)
+                embed = discord.Embed(title = title, description = description, color = 0xFFFFFF)
+                embed.set_footer(text = "requested by: " + ctx.author.display_name + "#" + ctx.author.discriminator + "\n")
+                await ctx.send(embed = embed)
             func_play(ctx)
     except Exception :
         pass

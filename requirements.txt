@@ -1,0 +1,7 @@
+discord.py
+discord.ext
+youtube_dl
+time
+threading
+urlliib.request
+re

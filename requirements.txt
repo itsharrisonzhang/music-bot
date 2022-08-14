@@ -1,6 +1,5 @@
 discord.py
 discord.ext
 youtube_dl
-threading
 urlliib.request
 re

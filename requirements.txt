@@ -1,3 +1,4 @@
-discord.py
-discord.ext
-youtube_dl
+discord.py==1.7.3
+discord.ext==0.8
+youtube_dl==2021.12.17
+async-timeout==3.0.1

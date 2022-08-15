@@ -35,7 +35,7 @@ async def join(ctx) :
 async def disconnect(ctx) :
     try :
         if (ctx.voice_client is not None) :
-            ctx.voice_client.disconnect()
+            await ctx.voice_client.disconnect()
     except Exception :
         pass
 

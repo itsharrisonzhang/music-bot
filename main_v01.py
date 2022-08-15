@@ -7,6 +7,7 @@ import urllib.request, re
 
 intents = discord.Intents.default()
 intents.members = True
+intents.messages = True
 client = commands.Bot(command_prefix = "/", intents = intents)
 
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}

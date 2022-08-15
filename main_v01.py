@@ -277,6 +277,6 @@ def get_time(duration, type = None) :
         queue_time = str(time_list[0]) + ":" + str(time_list[1]) + ":" + str(time_list[2])
     return queue_time
 
-client.run("MTAwMTMyMzQ3OTc4NzkxMzI0Ng.GF6Nee.CNWlG-JBT0LoJnjQ1enorOwo-RdNTaMYQuQ6CY")
+client.run(TOKEN)
 
 

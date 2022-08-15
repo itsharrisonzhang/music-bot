@@ -5,6 +5,7 @@ from time import *
 import threading
 import urllib.request, re
 
+
 client = commands.Bot(command_prefix = "/")
 
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
@@ -274,6 +275,6 @@ def get_time(duration, type = None) :
         queue_time = str(time_list[0]) + ":" + str(time_list[1]) + ":" + str(time_list[2])
     return queue_time
 
-client.run("MTAwMTMyMzQ3OTc4NzkxMzI0Ng.Gt3pEd.rNp7w4dKfUsMx7psd5yeSKXOq8RGRUhywt-9Og")
+client.run("MTAwMTMyMzQ3OTc4NzkxMzI0Ng.GvNz-_.YjtRPzFC7Xs63LTvA-_00He8L9Q9wT-j2jdQh0")
 
 

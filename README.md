@@ -1,2 +1,2 @@
-# lycaenidae
+# music-bot
 Custom Discord music bot.
